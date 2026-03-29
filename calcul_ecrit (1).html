@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✏️ Calcul Écrit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue-deep:#1a237e; --blue-mid:#283593; --blue-light:#5c6bc0; --blue-pale:#7986cb;
+    --purple-deep:#4a148c; --purple-mid:#6a1b9a; --purple:#7b1fa2; --purple-light:#9c27b0; --purple-soft:#ab47bc;
+    --teal:#006064; --teal-mid:#00838f; --teal-light:#26c6da;
+    --green:#2e7d32; --green-light:#66bb6a; --red:#c62828; --orange:#ef6c00;
+    --border:#c5d8e8; --card-bg:rgba(255,255,255,0.72); --grid-line:#c8dff0;
+    --font-hand:'Caveat',cursive; --font-ui:'Nunito',sans-serif;
+  }
+  body {
+    min-height:100vh; background-color:#f4efe3;
+    background-image:
+      repeating-linear-gradient(var(--grid-line) 0,var(--grid-line) 1px,transparent 1px,transparent 28px),
+      repeating-linear-gradient(90deg,var(--grid-line) 0,var(--grid-line) 1px,transparent 1px,transparent 28px);
+    background-size:28px 28px; font-family:var(--font-ui); padding:20px 16px 60px;
+  }
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+
+  .card{background:var(--card-bg);border-radius:18px;padding:28px;box-shadow:0 4px 28px rgba(80,100,200,0.13);backdrop-filter:blur(6px);border:1px solid rgba(200,220,255,0.5)}
+  .btn{padding:10px 22px;border-radius:20px;border:none;font-family:var(--font-ui);font-weight:800;font-size:15px;cursor:pointer;transition:all 0.18s}
+  .btn:hover:not([disabled]){filter:brightness(1.08)}
+  .btn[disabled]{opacity:0.35;cursor:default;pointer-events:none}
+  .btn-primary  {background:var(--blue-mid);  color:white;box-shadow:0 4px 14px rgba(40,53,147,0.35)}
+  .btn-secondary{background:rgba(255,255,255,0.8);color:var(--blue-mid);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+  .btn-purple   {background:var(--purple);    color:white;box-shadow:0 4px 14px rgba(123,31,162,0.35)}
+  .btn-teal     {background:var(--teal-mid);  color:white;box-shadow:0 4px 14px rgba(0,131,143,0.35)}
+  .btn-green    {background:var(--green);     color:white;box-shadow:0 4px 14px rgba(46,125,50,0.35)}
+  .btn-sm{padding:7px 14px;font-size:13px;border-radius:14px}
+
+  #header{text-align:center;margin-bottom:20px}
+  #header h1{font-family:var(--font-hand);font-size:46px;color:var(--blue-deep);text-shadow:2px 3px 0 rgba(180,210,255,0.7)}
+  #header p{color:var(--blue-light);font-size:15px;font-weight:600;margin-top:4px}
+
+  #score-banner{display:flex;justify-content:center;margin-bottom:18px}
+  #score-banner .card{padding:8px 24px;display:flex;align-items:center;gap:10px}
+
+  #tab-bar{display:flex;justify-content:center;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+
+  /* ── Calc grid ── */
+  .calc-grid{display:inline-grid;grid-template-columns:44px repeat(4,68px);row-gap:4px;column-gap:2px}
+  .col-header{height:28px;display:flex;align-items:center;justify-content:center;font-family:var(--font-ui);font-weight:900;font-size:13px;color:var(--blue-pale);letter-spacing:1px}
+  .num-cell{width:68px;height:64px;display:flex;align-items:center;justify-content:center;font-size:36px;font-family:var(--font-hand);font-weight:700;color:var(--blue-deep);background:rgba(255,255,255,0.35);border:1px solid var(--border);border-radius:5px}
+  .sign-cell{width:44px;height:64px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-family:var(--font-hand);font-size:36px;font-weight:700;color:var(--red)}
+  .separator{grid-column:1/-1;height:3px;background:var(--blue-deep);border-radius:2px;margin:6px 0 4px}
+  .ret-label{width:44px;height:30px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-family:var(--font-ui);font-weight:800;font-size:11px;color:var(--orange);letter-spacing:.5px}
+  .ret-cell{width:68px;height:30px;display:flex;align-items:center;justify-content:center}
+  .ret-input{width:30px;height:30px;text-align:center;font-family:var(--font-hand);font-weight:700;font-size:18px;color:var(--orange);background:rgba(255,243,224,0.8);border:1px dashed var(--orange);border-radius:5px;outline:none}
+  .ret-input.correct{color:var(--green);background:rgba(200,255,210,0.5);border-color:#4caf50}
+  .ret-input.wrong  {color:var(--red);  background:rgba(255,200,200,0.4);border-color:#f44336}
+  .ans-input{width:66px;height:66px;text-align:center;font-family:var(--font-hand);font-weight:700;font-size:40px;color:var(--blue-deep);background:rgba(255,255,245,0.88);border:2px dashed #90a4ae;border-radius:8px;outline:none;cursor:text;caret-color:var(--blue-deep);transition:all .2s}
+  .ans-input.lead   {background:transparent;border-color:transparent;cursor:default;color:transparent}
+  .ans-input.correct{color:var(--green);background:rgba(200,255,210,0.55);border:2px solid #4caf50;cursor:default}
+  .ans-input.wrong  {color:var(--red);  background:rgba(255,200,200,0.55);border:2px solid #f44336;cursor:default}
+
+  #feedback{margin-top:22px;padding:14px 20px;border-radius:14px;text-align:center;animation:pop .4s ease}
+  #feedback.ok  {background:rgba(200,255,210,0.65);border:2px solid var(--green-light)}
+  #feedback.fail{background:rgba(255,220,220,0.65);border:2px solid #ef9a9a}
+  .fb-emoji{font-size:32px;margin-bottom:4px}
+  .fb-msg{font-weight:900;font-size:20px}
+  #feedback.ok   .fb-msg{color:var(--green)}
+  #feedback.fail .fb-msg{color:var(--red)}
+  .fb-hint{margin-top:8px;font-size:15px;color:#555;font-weight:600}
+
+  /* ── Lesson grids ── */
+  .lesson-grid-2{display:inline-grid;grid-template-columns:44px repeat(3,68px);row-gap:3px;column-gap:2px}
+  .lesson-grid-3{display:inline-grid;grid-template-columns:44px repeat(3,68px);row-gap:3px;column-gap:2px}
+  .lesson-cell{width:68px;height:64px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid var(--border);background:rgba(255,255,255,.5);transition:all .3s}
+  .lesson-cell.fp{border-color:var(--purple-soft);background:rgba(186,104,200,0.1)}
+  .lesson-cell.ft{border-color:var(--teal-light); background:rgba(38,198,218,0.1)}
+  .lesson-cell .dig   {font-size:36px;font-family:var(--font-hand);font-weight:700;color:var(--blue-deep)}
+  .lesson-cell .struck{font-size:30px;font-family:var(--font-hand);font-weight:700;color:var(--red);text-decoration:line-through}
+  .lesson-cell .nd-p  {font-size:15px;font-family:var(--font-hand);font-weight:700;color:var(--purple)}
+  .lesson-cell .nd-t  {font-size:15px;font-family:var(--font-hand);font-weight:700;color:var(--teal-mid)}
+  .lesson-cell.res    {border-color:#ddd;background:rgba(245,245,245,0.4)}
+  .lesson-cell.res.ok {border-color:var(--green-light);background:rgba(200,255,210,0.4)}
+  .lesson-sign{width:44px;height:64px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-family:var(--font-hand);font-size:36px;font-weight:700;color:var(--red)}
+
+  .dot-btn{width:34px;height:34px;border-radius:50%;border:none;font-family:var(--font-ui);font-weight:900;font-size:13px;cursor:pointer;transition:all .2s}
+  .dp{background:#ce93d8;color:white}
+  .dcp{background:var(--purple);  color:white;box-shadow:0 3px 10px rgba(123,31,162,0.4)}
+  .dct{background:var(--teal-mid);color:white;box-shadow:0 3px 10px rgba(0,131,143,0.4)}
+  .df {background:rgba(200,180,220,0.3);color:var(--purple-light)}
+
+  #ratio-row{display:none;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center}
+  #ratio-row span{font-size:13px;font-weight:700;color:var(--blue-pale)}
+
+  .tab-content{display:none;flex-direction:column;align-items:center;gap:20px}
+  .tab-content.active{display:flex}
+  .action-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .tip-card{max-width:480px;width:100%;display:flex;gap:10px;align-items:flex-start;padding:12px 18px}
+  .tip-card p{font-size:14px;color:#5c6bc0;font-weight:600;line-height:1.5}
+
+  #celebration{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:999}
+  .star{position:absolute;top:-40px;animation:fall 1.8s ease-in forwards}
+
+  /* ── Milestone overlay ── */
+  #milestone{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px)}
+  #milestone.show{display:flex}
+  #milestone-box{
+    background:white;border-radius:28px;padding:40px 48px;text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    animation:milestone-pop .5s cubic-bezier(.34,1.56,.64,1) forwards;
+    max-width:360px;width:90%;
+  }
+  #milestone-box .m-emoji{font-size:72px;line-height:1;margin-bottom:12px;display:block}
+  #milestone-box .m-title{font-family:var(--font-hand);font-size:44px;font-weight:700;margin-bottom:8px}
+  #milestone-box .m-sub{font-size:16px;font-weight:700;color:#666;margin-bottom:28px;line-height:1.5}
+  #milestone-box .m-score{font-family:var(--font-hand);font-size:56px;font-weight:700;margin-bottom:24px}
+  #milestone-close{padding:14px 36px;border-radius:24px;border:none;font-family:var(--font-ui);font-weight:900;font-size:17px;cursor:pointer;color:white;transition:all .18s}
+  #milestone-close:hover{filter:brightness(1.1);transform:scale(1.04)}
+
+  @keyframes milestone-pop{0%{transform:scale(.4) rotate(-6deg);opacity:0}70%{transform:scale(1.06) rotate(1deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+  @keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:0}}
+  @keyframes pop {0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>✏️ Calcul Écrit</h1>
+  <p>3ème Primaire · Additions et Soustractions</p>
+</div>
+
+<div id="score-banner">
+  <div class="card">
+    <span style="font-size:24px">⭐</span>
+    <span style="font-weight:900;color:var(--blue-deep);font-size:20px" id="score-ok">0</span>
+    <span style="color:var(--blue-pale);font-weight:600">/</span>
+    <span style="font-weight:800;color:var(--blue-light);font-size:18px" id="score-total">0</span>
+    <span style="color:var(--blue-pale);font-size:14px;font-weight:600">bonnes réponses</span>
+  </div>
+</div>
+
+<div id="tab-bar">
+  <button class="btn btn-primary"   id="tbtn-p"  onclick="switchTab('practice')">✏️ Entraînement</button>
+  <button class="btn btn-secondary" id="tbtn-l2" onclick="switchTab('lesson2')">📖 Leçon − 2 rangées</button>
+  <button class="btn btn-secondary" id="tbtn-l3" onclick="switchTab('lesson3')">📖 Leçon − 3 rangées</button>
+</div>
+
+<!-- PRACTICE -->
+<div id="tab-practice" class="tab-content active">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+    <div class="action-row">
+      <button class="btn btn-primary"   id="op-plus"  onclick="switchOp('+')">➕ Addition</button>
+      <button class="btn btn-secondary" id="op-minus" onclick="switchOp('-')">➖ Soustraction</button>
+    </div>
+    <div id="ratio-row">
+      <span>🎲 Difficulté :</span>
+      <button class="btn btn-sm btn-secondary" id="r0"   onclick="setRatio(0)">Que 2 rangées</button>
+      <button class="btn btn-sm btn-primary"   id="r50"  onclick="setRatio(50)">Mixte 50/50</button>
+      <button class="btn btn-sm btn-secondary" id="r100" onclick="setRatio(100)">Que 3 rangées</button>
+    </div>
+  </div>
+  <div class="card" id="calc-card"></div>
+  <div class="action-row">
+    <button class="btn btn-green" id="btn-check" onclick="checkAnswer()">✅ Vérifier</button>
+    <button class="btn btn-secondary" onclick="newProb()">🔄 Nouveau calcul</button>
+  </div>
+  <div class="card tip-card">
+    <span style="font-size:20px">💡</span>
+    <p id="tip-text"></p>
+  </div>
+</div>
+
+<!-- LESSON 2-ROW -->
+<div id="tab-lesson2" class="tab-content">
+  <div class="card" style="max-width:560px;width:100%">
+    <h2 style="font-family:var(--font-hand);font-size:34px;color:#6a1b9a;text-align:center;margin-bottom:4px">La Soustraction avec Emprunt</h2>
+    <p style="text-align:center;color:#9c27b0;margin-bottom:20px;font-size:14px;font-weight:700">Exemple guidé : 532 − 278 = ?</p>
+    <div id="dots2" style="display:flex;justify-content:center;gap:8px;margin-bottom:22px;flex-wrap:wrap"></div>
+    <h3 style="font-family:var(--font-hand);font-size:28px;color:var(--purple);text-align:center;margin-bottom:16px" id="title2"></h3>
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><div class="lesson-grid-2" id="grid2"></div></div>
+    <div style="background:rgba(156,39,176,0.07);border-radius:12px;padding:14px 18px;border:1px solid rgba(156,39,176,0.2);margin-bottom:24px">
+      <p style="font-size:15px;color:var(--purple-deep);line-height:1.65;font-weight:600" id="text2"></p>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px">
+      <button class="btn btn-purple" id="prev2" onclick="lesson2Nav(-1)">← Précédent</button>
+      <button class="btn btn-purple" id="next2" onclick="lesson2Nav(1)">Suivant →</button>
+    </div>
+  </div>
+  <div class="card" style="max-width:560px;width:100%;padding:16px 20px">
+    <p style="margin-bottom:8px;font-weight:900;color:#6a1b9a;font-size:15px">📌 La règle de l'emprunt en résumé :</p>
+    <p style="margin:4px 0;font-size:14px;color:#4a148c;font-weight:600">1. On travaille toujours de droite à gauche (U → D → C → M)</p>
+    <p style="margin:4px 0;font-size:14px;color:#4a148c;font-weight:600">2. Si le chiffre du haut &lt; chiffre du bas → emprunt !</p>
+    <p style="margin:4px 0;font-size:14px;color:#4a148c;font-weight:600">3. On emprunte 1 à la colonne voisine gauche (elle perd 1)</p>
+    <p style="margin:4px 0;font-size:14px;color:#4a148c;font-weight:600">4. On ajoute 10 au chiffre du haut de la colonne</p>
+    <p style="margin:4px 0;font-size:14px;color:#4a148c;font-weight:600">5. On peut emprunter plusieurs fois dans le même calcul</p>
+  </div>
+</div>
+
+<!-- LESSON 3-ROW -->
+<div id="tab-lesson3" class="tab-content">
+  <div class="card" style="max-width:580px;width:100%">
+    <h2 style="font-family:var(--font-hand);font-size:34px;color:var(--teal-mid);text-align:center;margin-bottom:4px">Soustraction à 3 rangées 🆕</h2>
+    <p style="text-align:center;color:var(--teal-mid);margin-bottom:20px;font-size:14px;font-weight:700">Exemple guidé : 732 − 278 − 124 = ?</p>
+    <div id="dots3" style="display:flex;justify-content:center;gap:8px;margin-bottom:22px;flex-wrap:wrap"></div>
+    <h3 style="font-family:var(--font-hand);font-size:28px;color:var(--teal-mid);text-align:center;margin-bottom:16px" id="title3"></h3>
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><div class="lesson-grid-3" id="grid3"></div></div>
+    <div style="background:rgba(0,131,143,0.07);border-radius:12px;padding:14px 18px;border:1px solid rgba(0,131,143,0.25);margin-bottom:24px">
+      <p style="font-size:15px;color:var(--teal);line-height:1.65;font-weight:600" id="text3"></p>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:12px">
+      <button class="btn btn-teal" id="prev3" onclick="lesson3Nav(-1)">← Précédent</button>
+      <button class="btn btn-teal" id="next3" onclick="lesson3Nav(1)">Suivant →</button>
+    </div>
+  </div>
+  <div class="card" style="max-width:580px;width:100%;padding:16px 20px">
+    <p style="margin-bottom:8px;font-weight:900;color:var(--teal);font-size:15px">📌 Règle de l'emprunt à 3 rangées :</p>
+    <p style="margin:4px 0;font-size:14px;color:var(--teal);font-weight:600">1. Même sens qu'à 2 rangées : de droite à gauche (U → D → C → M)</p>
+    <p style="margin:4px 0;font-size:14px;color:var(--teal);font-weight:600">2. Dans chaque colonne, on soustrait les DEUX chiffres du bas du chiffre du haut</p>
+    <p style="margin:4px 0;font-size:14px;color:var(--teal);font-weight:600">3. Si le chiffre du haut &lt; somme des deux chiffres du bas → emprunt !</p>
+    <p style="margin:4px 0;font-size:14px;color:var(--teal);font-weight:600">4. L'emprunt fonctionne exactement comme à 2 rangées (la colonne gauche perd 1)</p>
+    <p style="margin:4px 0;font-size:14px;color:var(--teal);font-weight:600">5. La seule différence : on compare le haut à la SOMME des deux bas !</p>
+  </div>
+</div>
+
+<div id="celebration"></div>
+
+<!-- Milestone overlay -->
+<div id="milestone">
+  <div id="milestone-box">
+    <span class="m-emoji" id="m-emoji"></span>
+    <div class="m-title" id="m-title"></div>
+    <div class="m-sub"   id="m-sub"></div>
+    <div class="m-score" id="m-score"></div>
+    <button id="milestone-close" onclick="closeMilestone()">Continuer !</button>
+  </div>
+</div>
+
+<script>
+/* ══════ HELPERS ══════ */
+const C=4, LABELS=["M","C","D","U"];
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function digs(n){const s=Math.abs(Math.round(n)).toString();return[...Array(C-s.length).fill(null),...s.split("").map(Number)]}
+
+/* ══════ STATE ══════ */
+const state={tab:"practice",op:"+",nums:[],ans:Array(C).fill(""),ret:Array(C).fill(""),done:false,scoreOk:0,scoreTotal:0,step2:0,step3:0,sub3Ratio:50};
+
+/* ══════ GENERATE PROBLEM ══════ */
+function genProb(op){
+  if(op==="+"){
+    if(Math.random()<0.55){
+      let a,b,c;
+      do{a=rnd(100,3000);b=rnd(100,3000);c=rnd(100,3000);}while(a+b+c>9999||a+b+c<500);
+      return[a,b,c];
+    }
+    let a,b;
+    do{a=rnd(100,4999);b=rnd(100,4999);}while(a+b>9999||a+b<500);
+    return[a,b];
+  }
+  /* subtraction */
+  if(Math.random()*100<state.sub3Ratio){
+    let a,b,c;
+    do{a=rnd(1000,9999);b=rnd(100,Math.floor((a-200)/2));c=rnd(100,a-b-100);}while(a-b-c<100||b<100||c<100);
+    return[a,b,c];
+  }
+  const a=rnd(1000,9999),b=rnd(50,Math.min(a-1,5000));
+  return[a,b];
+}
+
+/* ══════ COMPUTE RESULT ══════ */
+function getAddInfo(nums){
+  const result=nums.reduce((s,n)=>s+n,0);
+  const ret=Array(C).fill(0);let carry=0;
+  for(let c=C-1;c>=0;c--){ret[c]=carry;let s=carry;nums.forEach(n=>{s+=(digs(n)[c]??0);});carry=Math.floor(s/10);}
+  return{result,rd:digs(result),ret};
+}
+function getSubInfo(nums){const result=nums.reduce((acc,n,i)=>i===0?n:acc-n,0);return{result,rd:digs(result),ret:null};}
+function computeInfo(){return state.op==="+"?getAddInfo(state.nums):getSubInfo(state.nums);}
+
+/* ══════ TAB SWITCHING ══════ */
+function switchTab(t){
+  state.tab=t;
+  ["practice","lesson2","lesson3"].forEach(id=>document.getElementById("tab-"+id).classList.toggle("active",id===t));
+  const styles={practice:{p:"btn btn-primary",l2:"btn btn-secondary",l3:"btn btn-secondary"},lesson2:{p:"btn btn-secondary",l2:"btn btn-purple",l3:"btn btn-secondary"},lesson3:{p:"btn btn-secondary",l2:"btn btn-secondary",l3:"btn btn-teal"}};
+  const s=styles[t];
+  document.getElementById("tbtn-p").className=s.p;
+  document.getElementById("tbtn-l2").className=s.l2;
+  document.getElementById("tbtn-l3").className=s.l3;
+  if(t==="lesson2")renderLesson2();
+  if(t==="lesson3")renderLesson3();
+}
+
+/* ══════ OP / RATIO SWITCHING ══════ */
+function switchOp(o){
+  state.op=o;state.nums=genProb(o);state.ans=Array(C).fill("");state.ret=Array(C).fill("");state.done=false;
+  document.getElementById("op-plus").className =o==="+"?"btn btn-primary":"btn btn-secondary";
+  document.getElementById("op-minus").className=o==="-"?"btn btn-purple":"btn btn-secondary";
+  document.getElementById("ratio-row").style.display=o==="-"?"flex":"none";
+  renderPractice();
+}
+function setRatio(v){
+  state.sub3Ratio=v;
+  ["r0","r50","r100"].forEach(id=>document.getElementById(id).className="btn btn-sm btn-secondary");
+  document.getElementById({0:"r0",50:"r50",100:"r100"}[v]).className="btn btn-sm btn-primary";
+  newProb();
+}
+
+/* ══════ PRACTICE ══════ */
+function newProb(){
+  state.nums=genProb(state.op);state.ans=Array(C).fill("");state.ret=Array(C).fill("");state.done=false;
+  clearCelebration();renderPractice();
+}
+function checkAnswer(){
+  if(state.done)return;state.done=true;
+  const info=computeInfo();
+  const allOk=info.rd.every((d,i)=>d===null?(!state.ans[i]||state.ans[i]==="0"):state.ans[i]===d.toString());
+  state.scoreTotal++;
+  if(allOk){
+    state.scoreOk++;
+    triggerCelebration();
+    if(state.scoreOk===5)  setTimeout(()=>triggerMilestone(5), 900);
+    else if(state.scoreOk===10) setTimeout(()=>triggerMilestone(10), 900);
+  }
+  updateScore();renderPractice();
+}
+
+function renderPractice(){
+  const info=computeInfo();const{rd,ret:retenues}=info;
+  const is3sub=state.op==="-"&&state.nums.length===3;
+  let html=`<div class="calc-grid">`;
+  html+=`<div></div>`;
+  LABELS.forEach(l=>{html+=`<div class="col-header">${l}</div>`;});
+  state.nums.forEach((n,ri)=>{
+    const ds=digs(n),sign=state.op==="+"?"+":" −";
+    html+=`<div class="sign-cell" style="visibility:${ri>0?"visible":"hidden"}">${ri>0?sign:""}</div>`;
+    ds.forEach((d,ci)=>{html+=d===null?`<div style="width:68px;height:64px"></div>`:`<div class="num-cell">${d}</div>`;});
+  });
+  html+=`<div class="separator"></div>`;
+  if(state.op==="+"){
+    html+=`<div class="ret-label">ret.</div>`;
+    retenues.forEach((rv,ci)=>{
+      html+=`<div class="ret-cell">`;
+      if(rv>0){let cls="ret-input"+(state.done?(state.ret[ci]===rv.toString()?" correct":" wrong"):"");html+=`<input class="${cls}" data-col="${ci}" data-type="ret" maxlength="1" inputmode="numeric" value="${state.ret[ci]}" placeholder="?" ${state.done?"disabled":""}>`;}
+      else html+=`<span style="color:#ddd;font-size:16px">·</span>`;
+      html+=`</div>`;
+    });
+  }
+  html+=`<div style="width:44px"></div>`;
+  Array(C).fill(0).forEach((_,ci)=>{
+    const isLead=rd[ci]===null;
+    let cls="ans-input";
+    if(isLead)cls+=" lead";
+    else if(state.done)cls+=state.ans[ci]===rd[ci]?.toString()?" correct":" wrong";
+    html+=`<input class="${cls}" data-col="${ci}" data-type="ans" maxlength="1" inputmode="numeric" value="${state.ans[ci]}" placeholder="${isLead?"":"?"}" ${state.done||isLead?"disabled":""}>`;
+  });
+  html+=`</div>`;
+  if(state.done){
+    const allOk=rd.every((d,i)=>d===null?(!state.ans[i]||state.ans[i]==="0"):state.ans[i]===d.toString());
+    html+=`<div id="feedback" class="${allOk?"ok":"fail"}"><div class="fb-emoji">${allOk?"🌟":"💪"}</div><div class="fb-msg">${allOk?"Bravo, c'est parfait !":"Pas tout à fait... La réponse était "+Math.abs(info.result)}</div>${!allOk?'<div class="fb-hint">Vérifie chaque colonne et tes emprunts 🔍</div>':""}</div>`;
+  }
+  document.getElementById("calc-card").innerHTML=html;
+  document.getElementById("btn-check").style.display=state.done?"none":"";
+  document.getElementById("tip-text").textContent=is3sub
+    ?"Pour 3 rangées : dans chaque colonne, soustrais les DEUX chiffres du bas du chiffre du haut. Si c'est impossible → emprunt à gauche, comme d'habitude !"
+    :state.op==="+"
+      ?"Commence par les unités (U) et va vers la gauche. N'oublie pas les retenues !"
+      :"Commence par les unités (U). Si le chiffre du haut est plus petit, emprunte à la colonne suivante !";
+  /* listeners */
+  document.querySelectorAll("[data-type='ans']").forEach(inp=>{
+    inp.addEventListener("input",e=>{const col=+e.target.dataset.col;const d=e.target.value.replace(/\D/g,"").slice(-1);state.ans[col]=d;e.target.value=d;if(d&&col>0){const p=document.querySelector(`[data-type='ans'][data-col='${col-1}']`);if(p&&!p.disabled)p.focus();}});
+    inp.addEventListener("keydown",e=>{const col=+e.target.dataset.col;if(e.key==="Backspace"&&!state.ans[col]&&col<C-1){const n=document.querySelector(`[data-type='ans'][data-col='${col+1}']`);if(n)n.focus();}});
+  });
+  document.querySelectorAll("[data-type='ret']").forEach(inp=>{
+    inp.addEventListener("input",e=>{const col=+e.target.dataset.col;const d=e.target.value.replace(/\D/g,"").slice(-1);state.ret[col]=d;e.target.value=d;});
+  });
+}
+
+/* ══════ SCORE / CELEBRATION ══════ */
+function updateScore(){document.getElementById("score-ok").textContent=state.scoreOk;document.getElementById("score-total").textContent=state.scoreTotal;}
+function spawnStars(count,duration){
+  const el=document.getElementById("celebration");
+  el.innerHTML=Array.from({length:count},(_,i)=>{
+    const x=rnd(1,99),delay=rnd(0,Math.min(duration*.4,1200));
+    const emoji=["⭐","🌟","✨","🎉","💫","🎊","🥳"][i%7],size=rnd(20,50);
+    return`<div class="star" style="left:${x}%;animation-delay:${delay}ms;font-size:${size}px">${emoji}</div>`;
+  }).join("");
+  setTimeout(()=>{document.getElementById("celebration").innerHTML="";},duration);
+}
+function triggerCelebration(){spawnStars(16,2800);}
+function clearCelebration(){document.getElementById("celebration").innerHTML="";}
+const MILESTONES={
+  5: {emoji:"🌟",title:"5 bonnes réponses !",  sub:"Super boulot, tu es en pleine forme !",color:"#f9a825",shadow:"rgba(249,168,37,0.45)"},
+  10:{emoji:"🏆",title:"10 bonnes réponses !",sub:"Incroyable ! Tu es une vraie championne des calculs !",color:"#1565c0",shadow:"rgba(21,101,192,0.45)"},
+};
+function triggerMilestone(n){
+  const m=MILESTONES[n];
+  document.getElementById("m-emoji").textContent=m.emoji;
+  document.getElementById("m-title").textContent=m.title;
+  document.getElementById("m-title").style.color=m.color;
+  document.getElementById("m-sub").textContent=m.sub;
+  document.getElementById("m-score").textContent=n+" ⭐";
+  document.getElementById("m-score").style.color=m.color;
+  const btn=document.getElementById("milestone-close");
+  btn.style.background=m.color;
+  btn.style.boxShadow="0 6px 20px "+m.shadow;
+  document.getElementById("milestone").classList.add("show");
+  spawnStars(32,5000);
+}
+function closeMilestone(){document.getElementById("milestone").classList.remove("show");}
+
+/* ══════ LESSON 2-ROW (532 − 278 = 254) ══════ */
+const L2=[
+  {title:"On pose le calcul 📐",text:"On aligne les chiffres en colonnes : unités sous unités, dizaines sous dizaines, centaines sous centaines. Le grand nombre est toujours EN HAUT.",focus:null,struck:{},newDig:{},res:{}},
+  {title:"Colonne U : 2 − 8 ❌",text:"2 est plus petit que 8. On ne peut pas soustraire directement ! Il faut emprunter 1 dizaine à la colonne D.",focus:"U",struck:{},newDig:{},res:{}},
+  {title:"Emprunt D → U : 12 − 8 = 4 ✅",text:"On barre le 3 (D perd 1) et on écrit 2 à côté. Les unités passent de 2 à 12 (+10 empruntés). On calcule : 12 − 8 = 4.",focus:"U",struck:{D:3},newDig:{D:2},res:{U:4}},
+  {title:"Colonne D : 2 − 7 ❌",text:"Après l'emprunt, D vaut 2. Mais 2 < 7. On doit emprunter encore à la colonne C !",focus:"D",struck:{D:3},newDig:{D:2},res:{U:4}},
+  {title:"Emprunt C → D : 12 − 7 = 5 ✅",text:"On barre le 5 (C perd 1) et on écrit 4. Les dizaines passent de 2 à 12 (+10). On calcule : 12 − 7 = 5.",focus:"D",struck:{D:3,C:5},newDig:{D:2,C:4},res:{U:4,D:5}},
+  {title:"Colonne C : 4 − 2 = 2 ✅",text:"Après l'emprunt, C vaut 4. Cette fois 4 > 2, pas besoin d'emprunter ! On calcule : 4 − 2 = 2.",focus:"C",struck:{D:3,C:5},newDig:{D:2,C:4},res:{U:4,D:5,C:2}},
+  {title:"532 − 278 = 254 🎉",text:"Bravo ! On lit le résultat de gauche à droite : 2 centaines, 5 dizaines, 4 unités → 254. Tu maîtrises les emprunts !",focus:null,struck:{D:3,C:5},newDig:{D:2,C:4},res:{U:4,D:5,C:2},done:true},
+];
+function lesson2Nav(dir){const n=state.step2+dir;if(n<0||n>=L2.length)return;state.step2=n;renderLesson2();}
+function renderLesson2(){
+  const s=L2[state.step2],top=[5,3,2],bot=[2,7,8],keys=["C","D","U"];
+  document.getElementById("dots2").innerHTML=L2.map((_,i)=>`<button class="dot-btn ${i===state.step2?"dcp":i<state.step2?"dp":"df"}" onclick="state.step2=${i};renderLesson2()">${i+1}</button>`).join("");
+  document.getElementById("title2").textContent=s.title;
+  document.getElementById("text2").textContent=s.text;
+  let g="";
+  g+=`<div></div>`;keys.forEach(k=>{g+=`<div class="col-header" style="color:${k===s.focus?"#7b1fa2":"#7986cb"}">${k}</div>`;});
+  g+=`<div style="width:44px"></div>`;
+  keys.forEach((k,i)=>{const struck=k in s.struck,foc=k===s.focus;const cls="lesson-cell"+(foc?" fp":"");
+    g+=struck?`<div class="${cls}"><span style="display:flex;flex-direction:column;align-items:center;line-height:1"><span class="nd-p">${s.newDig[k]}</span><span class="struck">${top[i]}</span></span></div>`:`<div class="${cls}"><span class="dig">${top[i]}</span></div>`;});
+  g+=`<div class="lesson-sign">−</div>`;
+  keys.forEach((k,i)=>{g+=`<div class="lesson-cell${k===s.focus?" fp":""}"><span class="dig">${bot[i]}</span></div>`;});
+  g+=`<div style="grid-column:1/-1;height:3px;background:var(--blue-deep);border-radius:2px;margin:4px 0"></div>`;
+  g+=`<div></div>`;
+  keys.forEach(k=>{const r=s.res[k];g+=`<div class="lesson-cell res${r!==undefined?" ok":""}">${r!==undefined?`<span style="font-size:36px;font-family:var(--font-hand);font-weight:700;color:var(--green)">${r}</span>`:`<span style="font-size:28px;color:#ccc">?</span>`}</div>`;});
+  document.getElementById("grid2").innerHTML=g;
+  const prev=document.getElementById("prev2"),next=document.getElementById("next2");
+  prev.disabled=state.step2===0;
+  if(state.step2<L2.length-1){next.textContent="Suivant →";next.className="btn btn-purple";next.onclick=()=>lesson2Nav(1);}
+  else{next.textContent="✏️ À moi de pratiquer !";next.className="btn btn-green";next.onclick=()=>{state.step2=0;switchOp("-");switchTab("practice");};}
+}
+
+/* ══════ LESSON 3-ROW (732 − 278 − 124 = 330) ══════
+   Col U : 2−8−4=−10 → emprunt D→U → 12−8−4=0    U=0
+   Col D : 3−1(prêté)=2 → 2−7−2=−7 → emprunt C→D → 12−7−2=3  D=3
+   Col C : 7−1(prêté)=6 → 6−2−1=3                 C=3
+   Résultat : 330 ✓
+══════════════════════════════════════════════════════ */
+const L3=[
+  {title:"On pose le calcul à 3 rangées 📐",
+   text:"On aligne les 3 nombres en colonnes. Le plus grand est toujours EN HAUT. Les deux nombres à soustraire sont en dessous, chacun avec un signe '−'. On travaille de droite à gauche, comme d'habitude !",
+   focus:null,struck:{},newDig:{},res:{}},
+  {title:"Colonne U : 2 − 8 − 4 ❌",
+   text:"Dans la colonne U, on doit soustraire LES DEUX chiffres du bas : 2 − 8 − 4 = −10. C'est négatif, impossible ! Il faut emprunter 1 dizaine à la colonne D.",
+   focus:"U",struck:{},newDig:{},res:{}},
+  {title:"Emprunt D → U : 12 − 8 − 4 = 0 ✅",
+   text:"On barre le 3 (D perd 1, il devient 2). Les unités passent de 2 à 12 grâce aux 10 empruntés. On calcule maintenant : 12 − 8 − 4 = 0. Colonne U résolue !",
+   focus:"U",struck:{D:3},newDig:{D:2},res:{U:0}},
+  {title:"Colonne D : 2 − 7 − 2 ❌",
+   text:"Après avoir prêté 1 aux unités, D vaut maintenant 2. On calcule : 2 − 7 − 2 = −7. Encore négatif ! Il faut emprunter 1 centaine à la colonne C.",
+   focus:"D",struck:{D:3},newDig:{D:2},res:{U:0}},
+  {title:"Emprunt C → D : 12 − 7 − 2 = 3 ✅",
+   text:"On barre le 7 (C perd 1, il devient 6). Les dizaines passent de 2 à 12. On calcule : 12 − 7 − 2 = 3. Colonne D résolue !",
+   focus:"D",struck:{D:3,C:7},newDig:{D:2,C:6},res:{U:0,D:3}},
+  {title:"Colonne C : 6 − 2 − 1 = 3 ✅",
+   text:"Après avoir prêté 1 aux dizaines, C vaut 6. On soustrait les deux chiffres du bas : 6 − 2 − 1 = 3. Pas d'emprunt nécessaire cette fois !",
+   focus:"C",struck:{D:3,C:7},newDig:{D:2,C:6},res:{U:0,D:3,C:3}},
+  {title:"732 − 278 − 124 = 330 🎉",
+   text:"Bravo ! 3 centaines, 3 dizaines, 0 unités → 330. La règle est la même qu'à 2 rangées : on emprunte quand le chiffre du haut est plus petit que la SOMME des deux chiffres du bas !",
+   focus:null,struck:{D:3,C:7},newDig:{D:2,C:6},res:{U:0,D:3,C:3},done:true},
+];
+function lesson3Nav(dir){const n=state.step3+dir;if(n<0||n>=L3.length)return;state.step3=n;renderLesson3();}
+function renderLesson3(){
+  const s=L3[state.step3],top=[7,3,2],mid=[2,7,8],bot=[1,2,4],keys=["C","D","U"];
+  document.getElementById("dots3").innerHTML=L3.map((_,i)=>`<button class="dot-btn ${i===state.step3?"dct":i<state.step3?"dp":"df"}" onclick="state.step3=${i};renderLesson3()">${i+1}</button>`).join("");
+  document.getElementById("title3").textContent=s.title;
+  document.getElementById("text3").textContent=s.text;
+  let g="";
+  /* headers */
+  g+=`<div></div>`;keys.forEach(k=>{g+=`<div class="col-header" style="color:${k===s.focus?"var(--teal-mid)":"#7986cb"}">${k}</div>`;});
+  /* top row */
+  g+=`<div style="width:44px"></div>`;
+  keys.forEach((k,i)=>{const struck=k in s.struck,foc=k===s.focus;const cls="lesson-cell"+(foc?" ft":"");
+    g+=struck?`<div class="${cls}"><span style="display:flex;flex-direction:column;align-items:center;line-height:1"><span class="nd-t">${s.newDig[k]}</span><span class="struck">${top[i]}</span></span></div>`:`<div class="${cls}"><span class="dig">${top[i]}</span></div>`;});
+  /* mid row */
+  g+=`<div class="lesson-sign">−</div>`;
+  keys.forEach((k,i)=>{g+=`<div class="lesson-cell${k===s.focus?" ft":""}"><span class="dig">${mid[i]}</span></div>`;});
+  /* bot row */
+  g+=`<div class="lesson-sign">−</div>`;
+  keys.forEach((k,i)=>{g+=`<div class="lesson-cell${k===s.focus?" ft":""}"><span class="dig">${bot[i]}</span></div>`;});
+  /* separator */
+  g+=`<div style="grid-column:1/-1;height:3px;background:var(--blue-deep);border-radius:2px;margin:4px 0"></div>`;
+  /* result */
+  g+=`<div></div>`;
+  keys.forEach(k=>{const r=s.res[k];g+=`<div class="lesson-cell res${r!==undefined?" ok":""}">${r!==undefined?`<span style="font-size:36px;font-family:var(--font-hand);font-weight:700;color:var(--green)">${r}</span>`:`<span style="font-size:28px;color:#ccc">?</span>`}</div>`;});
+  document.getElementById("grid3").innerHTML=g;
+  const prev=document.getElementById("prev3"),next=document.getElementById("next3");
+  prev.disabled=state.step3===0;
+  if(state.step3<L3.length-1){next.textContent="Suivant →";next.className="btn btn-teal";next.onclick=()=>lesson3Nav(1);}
+  else{next.textContent="✏️ À moi de pratiquer !";next.className="btn btn-green";next.onclick=()=>{state.step3=0;setRatio(100);switchOp("-");switchTab("practice");};}
+}
+
+/* ══════ INIT ══════ */
+state.nums=genProb("+");
+renderPractice();
+</script>
+</body>
+</html>
