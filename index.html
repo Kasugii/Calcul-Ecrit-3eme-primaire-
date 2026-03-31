@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>✨ MathMagique</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:'Nunito',sans-serif;overflow-x:hidden;
+  background:var(--bg,linear-gradient(145deg,#fce4ec 0%,#f8bbd9 20%,#f3e5f5 45%,#ede7f6 70%,#e8eaf6 100%));
+  background-attachment:fixed;transition:background 0.6s ease;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+button{cursor:pointer;transition:transform .15s;font-family:'Nunito',sans-serif}
+button:hover{transform:scale(1.05)!important}
+button:active{transform:scale(0.96)!important}
+
+@keyframes floatUp{0%{transform:translateY(0) rotate(-5deg)}100%{transform:translateY(-20px) rotate(5deg)}}
+@keyframes fallDown{0%{transform:translateY(-60px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes modalPop{0%{transform:scale(0.5) translateY(40px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+@keyframes slideIn{from{transform:translateY(-30px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes spin{0%{transform:rotate(-20deg) scale(0.8)}50%{transform:rotate(15deg) scale(1.2)}100%{transform:rotate(0) scale(1)}}
+@keyframes bounceIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes hpDrain{from{background-position:0 0}to{background-position:60px 0}}
+@keyframes bossShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes dmgFloat{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-50px);opacity:0}}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+.glass{background:rgba(255,255,255,.68);border-radius:22px;padding:22px;
+  box-shadow:0 6px 32px rgba(74,20,140,.12);backdrop-filter:blur(10px);
+  border:1.5px solid rgba(255,255,255,.75);}
+
+.pill{padding:10px 22px;border-radius:99px;border:none;font-weight:900;font-size:14px;letter-spacing:.3px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);transition:all .18s;}
+.pill-active-pink{background:linear-gradient(135deg,#f06292,#ce93d8);color:#fff;box-shadow:0 4px 16px #f0629266;}
+.pill-active-blue{background:linear-gradient(135deg,#42a5f5,#1565c0);color:#fff;box-shadow:0 4px 16px #42a5f566;}
+.pill-active-purple{background:linear-gradient(135deg,#ab47bc,#6a1b9a);color:#fff;box-shadow:0 4px 16px #ab47bc66;}
+.pill-active-gold{background:linear-gradient(135deg,#ffd600,#ef6c00);color:#fff;box-shadow:0 4px 16px #ef6c0066;}
+.pill-active-green{background:linear-gradient(135deg,#66bb6a,#2e7d32);color:#fff;box-shadow:0 4px 16px #2e7d3266;}
+.pill-active-teal{background:linear-gradient(135deg,#26c6da,#00838f);color:#fff;box-shadow:0 4px 16px #26c6da66;}
+.pill-active-orange{background:linear-gradient(135deg,#ff7043,#bf360c);color:#fff;box-shadow:0 4px 16px #ff704366;}
+.pill-inactive{background:rgba(255,255,255,.8);color:#7b1fa2;}
+
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;animation:floatUp var(--dur) var(--delay) ease-in-out infinite alternate}
+
+#confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden;display:none}
+.conf{position:absolute;top:-60px;animation:fallDown var(--dur) var(--delay) ease-in both}
+
+#streak-flash{position:fixed;top:80px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,#ff6f00,#ffd600);color:#fff;
+  border-radius:99px;padding:10px 28px;font-weight:900;font-size:20px;
+  box-shadow:0 4px 20px rgba(255,111,0,.45);z-index:500;display:none;
+  animation:slideIn .3s ease;white-space:nowrap}
+
+#levelup-modal{display:none;position:fixed;inset:0;background:rgba(74,20,140,.55);z-index:1000;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#levelup-modal.show{display:flex}
+#levelup-box{background:linear-gradient(135deg,#fce4ec,#f3e5f5,#e8eaf6);
+  border-radius:28px;padding:36px 40px;text-align:center;max-width:380px;width:90%;
+  box-shadow:0 20px 60px rgba(74,20,140,.35);border:3px solid rgba(255,255,255,.8);
+  animation:modalPop .45s cubic-bezier(.34,1.56,.64,1)}
+
+/* Shop modal */
+#shop-confirm-modal{display:none;position:fixed;inset:0;background:rgba(74,20,140,.55);z-index:1001;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#shop-confirm-modal.show{display:flex}
+#shop-confirm-box{background:linear-gradient(135deg,#fff8e1,#fff3e0);
+  border-radius:24px;padding:30px 32px;text-align:center;max-width:340px;width:90%;
+  box-shadow:0 16px 48px rgba(239,108,0,.3);border:3px solid rgba(255,255,255,.8);
+  animation:modalPop .4s cubic-bezier(.34,1.56,.64,1)}
+
+/* Battle result modal */
+#battle-result-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1002;
+  align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+#battle-result-modal.show{display:flex}
+#battle-result-box{border-radius:28px;padding:32px 36px;text-align:center;max-width:380px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);border:3px solid rgba(255,255,255,.7);
+  animation:modalPop .5s cubic-bezier(.34,1.56,.64,1)}
+
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:0 12px 48px}
+.tab{display:none}.tab.active{display:flex;flex-direction:column;gap:16px}
+
+/* Grid */
+.calc-grid{display:inline-grid;row-gap:4px;column-gap:3px}
+.col-header{height:26px;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:12px;color:#ab47bc;letter-spacing:1px}
+.num-cell{width:62px;height:62px;display:flex;align-items:center;justify-content:center;
+  font-size:34px;font-family:'Caveat',cursive;font-weight:700;color:#4a148c;
+  background:rgba(255,255,255,.4);border:1.5px solid #e1bee7;border-radius:6px}
+.sign-cell{width:44px;height:62px;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:6px;font-family:'Caveat',cursive;font-size:34px;font-weight:700;color:#e91e8c}
+.sep{height:3px;background:linear-gradient(90deg,#f06292,#ce93d8,#90caf9);border-radius:2px;margin:6px 0 2px}
+.ret-label{width:44px;height:28px;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:6px;font-weight:800;font-size:10px;color:#ef6c00;letter-spacing:.5px}
+.ret-cell{width:62px;height:28px;display:flex;align-items:center;justify-content:center}
+.ret-input{width:28px;height:28px;text-align:center;font-family:'Caveat',cursive;font-weight:700;
+  font-size:17px;border-radius:6px;outline:none;border:1.5px dashed #ef6c00;
+  background:rgba(255,243,224,.9);color:#ef6c00}
+.ans-cell-wrap{width:44px}
+.ans-input{width:60px;height:60px;text-align:center;font-family:'Caveat',cursive;font-weight:700;
+  font-size:38px;color:#4a148c;background:rgba(255,255,255,.85);
+  border:2.5px dashed #ce93d8;border-radius:10px;outline:none;transition:all .25s}
+.ans-input.ok{color:#2e7d32;background:rgba(200,255,210,.6);border:2.5px solid #4caf50}
+.ans-input.err{color:#c62828;background:rgba(255,200,200,.6);border:2.5px solid #f44336;animation:shake .4s ease}
+.feedback{margin-top:18px;padding:16px;border-radius:16px;text-align:center;animation:slideIn .35s ease}
+.feedback.ok{background:rgba(200,255,210,.7);border:2px solid #66bb6a}
+.feedback.err{background:rgba(255,220,220,.7);border:2px solid #ef9a9a}
+.feedback-emoji{font-size:34px;margin-bottom:4px}
+.feedback-msg{font-weight:900;font-size:19px}
+
+.xp-bar-bg{height:14px;background:rgba(255,255,255,.4);border-radius:99px;overflow:hidden;
+  border:2px solid rgba(255,255,255,.6)}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,#f06292,#ce93d8,#90caf9);
+  border-radius:99px;transition:width .5s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 0 8px rgba(240,98,146,.6)}
+
+/* Lesson */
+.l-cell{width:64px;height:58px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;border:2px solid #e1bee7;background:rgba(255,255,255,.5);transition:all .3s}
+.l-cell.focus{border-color:#e91e8c;background:rgba(233,30,140,.08)}
+.l-cell.res{border-color:#66bb6a;background:rgba(200,255,210,.5)}
+
+/* Badges */
+.badge-row{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.65);
+  border-radius:16px;padding:12px 16px;border:2px solid rgba(240,98,146,.3);
+  box-shadow:0 3px 14px rgba(240,98,146,.15);transition:all .3s}
+.badge-row.locked{background:rgba(240,240,240,.4);border-color:rgba(200,200,200,.3);
+  filter:grayscale(1);opacity:.55;box-shadow:none}
+
+/* Shop */
+.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shop-item{background:rgba(255,255,255,.7);border-radius:18px;padding:14px 12px;text-align:center;
+  border:2px solid rgba(255,255,255,.8);cursor:pointer;transition:all .2s;
+  box-shadow:0 3px 12px rgba(0,0,0,.07)}
+.shop-item:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.shop-item.owned{border-color:#66bb6a;background:rgba(200,255,210,.4)}
+.shop-item.equipped{border-color:#ffd600;background:rgba(255,236,100,.3);
+  box-shadow:0 4px 16px rgba(255,214,0,.4)}
+.shop-item-emoji{font-size:36px;margin-bottom:6px}
+.shop-item-name{font-weight:900;font-size:13px;color:#4a148c;margin-bottom:3px}
+.shop-item-desc{font-size:11px;color:#8e24aa;font-weight:600;margin-bottom:8px;line-height:1.3}
+.shop-item-price{display:inline-flex;align-items:center;gap:4px;
+  background:linear-gradient(135deg,#1565c0,#42a5f5);color:#fff;
+  border-radius:99px;padding:4px 12px;font-weight:900;font-size:13px}
+
+/* Speed mode */
+.speed-timer-wrap{height:18px;background:rgba(255,255,255,.4);border-radius:99px;
+  overflow:hidden;border:2px solid rgba(255,255,255,.6);margin-bottom:4px}
+.speed-timer-fill{height:100%;border-radius:99px;transition:width .5s linear;
+  background:linear-gradient(90deg,#26c6da,#00e5ff)}
+.speed-timer-fill.warn{background:linear-gradient(90deg,#ff9800,#ffd600)}
+.speed-timer-fill.danger{background:linear-gradient(90deg,#f44336,#ff1744)}
+
+/* Battle */
+.battle-hp-wrap{height:16px;background:rgba(255,255,255,.25);border-radius:99px;
+  overflow:hidden;border:2px solid rgba(255,255,255,.4)}
+.battle-hp-fill{height:100%;border-radius:99px;transition:width .4s ease;
+  background:linear-gradient(90deg,#66bb6a,#a5d6a7)}
+.battle-hp-fill.mid{background:linear-gradient(90deg,#ffc107,#ffd54f)}
+.battle-hp-fill.low{background:linear-gradient(90deg,#f44336,#ef9a9a);animation:timerPulse .8s infinite}
+.battle-log{background:rgba(0,0,0,.1);border-radius:12px;padding:10px 14px;
+  max-height:130px;overflow-y:auto;font-size:12px;line-height:1.8}
+.battle-log::-webkit-scrollbar{width:4px}
+.battle-log::-webkit-scrollbar-thumb{background:#ab47bc;border-radius:2px}
+.mascot-card{background:rgba(255,255,255,.65);border-radius:16px;padding:12px;
+  text-align:center;cursor:pointer;border:2.5px solid rgba(255,255,255,.8);
+  transition:all .2s;flex:1;min-width:0}
+.mascot-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.mascot-card.selected{border-color:#ffd600;background:rgba(255,236,100,.3);
+  box-shadow:0 4px 16px rgba(255,214,0,.5)}
+.mascot-card.locked{filter:grayscale(1);opacity:.45;cursor:not-allowed}
+.boss-card{background:rgba(255,255,255,.6);border-radius:18px;padding:16px;
+  text-align:center;cursor:pointer;border:2.5px solid rgba(255,255,255,.8);
+  transition:all .2s}
+.boss-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.boss-easy{border-color:#66bb6a88;background:rgba(200,255,210,.3)}
+.boss-medium{border-color:#ffd60088;background:rgba(255,236,100,.3)}
+.boss-hard{border-color:#f4433688;background:rgba(255,200,200,.3)}
+
+/* Battle answer input */
+.battle-answer-input{width:100%;max-width:200px;height:64px;text-align:center;
+  font-family:'Caveat',cursive;font-weight:700;font-size:42px;color:#4a148c;
+  background:rgba(255,255,255,.9);border:3px dashed #ce93d8;border-radius:16px;
+  outline:none;transition:all .25s;display:block;margin:0 auto}
+.battle-answer-input.ok{border-color:#4caf50;background:rgba(200,255,210,.6);color:#2e7d32}
+.battle-answer-input.err{border-color:#f44336;background:rgba(255,200,200,.6);animation:shake .4s ease}
+
+/* Tab nav scroll */
+.tab-nav{display:flex;gap:8px;margin-bottom:18px;overflow-x:auto;
+  scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.tab-nav::-webkit-scrollbar{display:none}
+.tab-nav button{white-space:nowrap;flex-shrink:0}
+
+/* Challenge mode */
+.challenge-progress{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.challenge-dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.4);
+  border:2px solid rgba(255,255,255,.7);transition:all .3s}
+.challenge-dot.ok{background:#66bb6a;border-color:#2e7d32}
+.challenge-dot.err{background:#f44336;border-color:#c62828}
+
+/* Active boosts indicator */
+.boost-indicator{display:inline-flex;align-items:center;gap:4px;
+  background:rgba(255,214,0,.25);border:1.5px solid #ffd600;border-radius:99px;
+  padding:3px 10px;font-size:12px;font-weight:800;color:#e65100}
+</style>
+</head>
+<body>
+
+<div id="particles"></div>
+<div id="confetti-layer"></div>
+<div id="streak-flash"></div>
+
+<!-- Level Up Modal -->
+<div id="levelup-modal">
+  <div id="levelup-box">
+    <div id="lu-mascot" style="font-size:70px;margin-bottom:4px;animation:spin 1s ease"></div>
+    <div style="font-size:13px;font-weight:800;color:#ab47bc;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">Niveau atteint !</div>
+    <div id="lu-level" style="font-family:'Caveat',cursive;font-size:56px;color:#4a148c;font-weight:700;line-height:1;margin-bottom:4px"></div>
+    <div id="lu-name" style="font-weight:700;color:#7b1fa2;font-size:18px;margin-bottom:20px"></div>
+    <div id="lu-badge" style="display:none;background:rgba(255,255,255,.6);border-radius:16px;padding:14px 18px;margin-bottom:20px;border:2px dashed #f06292">
+      <div style="font-weight:800;color:#c2185b;font-size:14px;margin-bottom:10px">🎁 NOUVEAU BADGE DÉBLOQUÉ !</div>
+      <div id="lu-badge-emoji" style="font-size:44px"></div>
+      <div id="lu-badge-name" style="font-weight:900;color:#4a148c;font-size:18px"></div>
+      <div id="lu-badge-desc" style="color:#7b1fa2;font-size:13px;font-weight:600"></div>
+    </div>
+    <button class="pill pill-active-pink" style="font-size:17px;padding:12px 32px" onclick="closeLevelUp()">Continuons ! 🚀</button>
+  </div>
+</div>
+
+<!-- Shop Confirm Modal -->
+<div id="shop-confirm-modal">
+  <div id="shop-confirm-box">
+    <div id="sc-emoji" style="font-size:52px;margin-bottom:8px"></div>
+    <div id="sc-name" style="font-weight:900;font-size:20px;color:#4a148c;margin-bottom:6px"></div>
+    <div id="sc-desc" style="font-size:13px;color:#7b1fa2;font-weight:600;margin-bottom:16px"></div>
+    <div id="sc-price" style="font-size:18px;font-weight:900;color:#1565c0;margin-bottom:20px"></div>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="pill pill-inactive" onclick="closeShopConfirm()">Annuler</button>
+      <button class="pill pill-active-gold" id="sc-buy-btn" onclick="confirmBuy()">Acheter 💎</button>
+    </div>
+  </div>
+</div>
+
+<!-- Battle Result Modal -->
+<div id="battle-result-modal">
+  <div id="battle-result-box">
+    <div id="br-emoji" style="font-size:72px;margin-bottom:8px;animation:bounceIn .6s ease"></div>
+    <div id="br-title" style="font-family:'Caveat',cursive;font-size:42px;font-weight:700;margin-bottom:6px"></div>
+    <div id="br-msg" style="font-weight:700;font-size:15px;margin-bottom:16px;color:#555;line-height:1.5"></div>
+    <div id="br-rewards" style="background:rgba(255,255,255,.6);border-radius:14px;padding:12px 18px;margin-bottom:20px;display:none"></div>
+    <button class="pill pill-active-pink" style="font-size:16px;padding:12px 28px" onclick="closeBattleResult()">Retour au combat ⚔️</button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <div style="padding-top:20px;padding-bottom:10px;text-align:center">
+    <h1 style="font-family:'Caveat',cursive;font-size:48px;background:linear-gradient(135deg,#e91e8c,#7b1fa2,#1565c0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 0 rgba(255,255,255,.6))">✨ MathMagique ✨</h1>
+    <p style="color:#8e24aa;font-weight:700;font-size:13px;margin-top:4px">Calcul écrit · 3ème Primaire Belgique</p>
+  </div>
+
+  <!-- HUD -->
+  <div class="glass" style="margin-bottom:14px;padding:16px 20px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div id="hud-mascot" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:38px;background:rgba(255,255,255,.6);border-radius:16px;border:2px solid rgba(240,98,146,.3);flex-shrink:0;animation:pulse 3s ease infinite"></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span id="hud-level" style="font-weight:900;font-size:22px;color:#4a148c"></span>
+            <span id="hud-mascot-name" style="font-size:12px;font-weight:700;color:#ab47bc;background:rgba(171,71,188,.12);padding:2px 8px;border-radius:99px"></span>
+          </div>
+          <span id="hud-xp-label" style="font-size:12px;font-weight:700;color:#9c27b0"></span>
+        </div>
+        <div class="xp-bar-bg"><div id="xp-fill" class="xp-bar-fill" style="width:0%"></div></div>
+        <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+          <span id="hud-gems" style="font-size:13px;font-weight:700;color:#1565c0"></span>
+          <span id="hud-streak" style="font-size:13px;font-weight:700;color:#ff6f00"></span>
+          <span id="hud-correct" style="font-size:13px;font-weight:700;color:#2e7d32"></span>
+          <span id="hud-boosts" style="font-size:12px;font-weight:700;color:#e65100"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-nav">
+    <button class="pill pill-active-pink" onclick="showTab('play')" id="btn-tab-play">🎮 Jouer</button>
+    <button class="pill pill-inactive" onclick="showTab('speed')" id="btn-tab-speed">⚡ Vitesse</button>
+    <button class="pill pill-inactive" onclick="showTab('battle')" id="btn-tab-battle">⚔️ Combat</button>
+    <button class="pill pill-inactive" onclick="showTab('shop')" id="btn-tab-shop">🛒 Shop</button>
+    <button class="pill pill-inactive" onclick="showTab('learn')" id="btn-tab-learn">📖 Apprendre</button>
+    <button class="pill pill-inactive" onclick="showTab('collection')" id="btn-tab-collection">🏆 Collection</button>
+  </div>
+
+  <!-- ═══ PLAY TAB ═══ -->
+  <div id="tab-content-play" class="tab active">
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="pill pill-active-blue" id="btn-add" onclick="switchOp('+')">➕ Addition</button>
+      <button class="pill pill-inactive" id="btn-sub" onclick="switchOp('-')">➖ Soustraction</button>
+    </div>
+    <!-- Mode selector -->
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="pill pill-active-pink" id="btn-mode-normal" onclick="setMode('normal')">Normal</button>
+      <button class="pill pill-inactive" id="btn-mode-challenge" onclick="setMode('challenge')">🏅 Défi 10/10</button>
+    </div>
+    <!-- Challenge progress dots -->
+    <div id="challenge-panel" style="display:none" class="glass" style="padding:14px">
+      <p style="text-align:center;font-weight:900;font-size:15px;color:#7b1fa2;margin-bottom:10px">Question <span id="chal-q">1</span>/10</p>
+      <div class="challenge-progress" id="chal-dots"></div>
+    </div>
+    <!-- Active boosts -->
+    <div id="active-boosts-panel" style="display:none;text-align:center;gap:6px;flex-wrap:wrap;justify-content:center"></div>
+
+    <div class="glass" style="display:flex;flex-direction:column;align-items:center">
+      <div id="calc-grid-wrap"></div>
+      <div id="feedback" style="display:none;width:100%"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="pill pill-active-green" id="btn-check" onclick="check()">✅ Vérifier</button>
+      <button class="pill pill-inactive" id="btn-hint" onclick="useHint()" style="display:none">💡 Indice</button>
+      <button class="pill pill-inactive" onclick="newProb()">🔄 Nouveau calcul</button>
+    </div>
+
+    <div class="glass" style="padding:12px 16px;display:flex;gap:8px;align-items:flex-start">
+      <span style="font-size:18px;flex-shrink:0">💡</span>
+      <p id="tip-text" style="font-size:13px;color:#6a1b9a;font-weight:600;line-height:1.55"></p>
+    </div>
+  </div>
+
+  <!-- ═══ SPEED TAB ═══ -->
+  <div id="tab-content-speed" class="tab">
+    <div class="glass" style="padding:18px 20px">
+      <h2 style="font-family:'Caveat',cursive;font-size:36px;color:#00838f;text-align:center;margin-bottom:6px">⚡ Mode Vitesse</h2>
+      <p style="text-align:center;color:#0097a7;font-weight:700;font-size:13px;margin-bottom:14px">90 secondes · Maximum de bonnes réponses · XP ×1.5 !</p>
+      <div id="speed-timer-wrap" class="speed-timer-wrap" style="display:none">
+        <div id="speed-timer-fill" class="speed-timer-fill" style="width:100%"></div>
+      </div>
+      <div id="speed-time-label" style="text-align:center;font-family:'Caveat',cursive;font-size:32px;color:#00838f;font-weight:700;margin-bottom:10px;display:none"></div>
+      <div id="speed-score-display" style="display:none;text-align:center">
+        <div style="font-size:13px;font-weight:800;color:#00838f;letter-spacing:1px;text-transform:uppercase">Score</div>
+        <div id="speed-score-val" style="font-family:'Caveat',cursive;font-size:64px;color:#007c91;font-weight:700;line-height:1">0</div>
+      </div>
+    </div>
+
+    <div id="speed-start-panel" class="glass" style="text-align:center;padding:24px">
+      <div style="font-size:64px;margin-bottom:12px">⚡</div>
+      <p style="font-weight:800;font-size:16px;color:#4a148c;margin-bottom:8px">Résous le maximum de calculs en 90s !</p>
+      <p style="font-size:13px;color:#7b1fa2;font-weight:600;margin-bottom:20px">Chaque bonne réponse = +1.5× XP pour ton compagnon 🐾</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="pill pill-active-blue" onclick="startSpeed('+')">➕ Addition</button>
+        <button class="pill pill-active-purple" onclick="startSpeed('-')">➖ Soustraction</button>
+        <button class="pill pill-active-pink" onclick="startSpeed('mix')">🎲 Mix</button>
+      </div>
+    </div>
+
+    <div id="speed-play-panel" style="display:none;flex-direction:column;gap:14px">
+      <div class="glass" style="display:flex;flex-direction:column;align-items:center">
+        <div id="speed-grid-wrap"></div>
+        <div id="speed-feedback" style="display:none;width:100%"></div>
+      </div>
+      <div style="text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button class="pill pill-active-green" id="btn-speed-check" onclick="checkSpeed()">✅ Valider</button>
+        <button class="pill pill-active-teal" id="btn-speed-next" onclick="nextSpeedProb()" style="display:none">➡️ Suivant</button>
+      </div>
+    </div>
+
+    <div id="speed-result-panel" style="display:none" class="glass">
+      <div style="text-align:center">
+        <div style="font-size:52px;margin-bottom:8px">🏆</div>
+        <h3 style="font-family:'Caveat',cursive;font-size:38px;color:#4a148c;margin-bottom:6px">Temps écoulé !</h3>
+        <p style="font-weight:800;color:#7b1fa2;font-size:15px;margin-bottom:4px">Score final : <span id="speed-final-score" style="color:#00838f"></span> bonnes réponses</p>
+        <p id="speed-xp-earned" style="font-weight:700;color:#2e7d32;font-size:14px;margin-bottom:20px"></p>
+        <button class="pill pill-active-teal" onclick="resetSpeed()" style="font-size:15px;padding:12px 28px">Rejouer ⚡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BATTLE TAB ═══ -->
+  <div id="tab-content-battle" class="tab">
+    <!-- Phase: idle/start -->
+    <div id="battle-idle-panel">
+      <div class="glass" style="text-align:center;padding:22px">
+        <div style="font-size:60px;margin-bottom:10px">⚔️</div>
+        <h2 style="font-family:'Caveat',cursive;font-size:36px;color:#7b1fa2;margin-bottom:6px">Arène des Maths</h2>
+        <p style="font-size:13px;color:#8e24aa;font-weight:700;line-height:1.6">Forme une équipe avec tes compagnons débloqués.<br>Bats les boss en résolvant des calculs !<br>Chaque bonne réponse = une attaque ! 💥</p>
+      </div>
+      <div class="glass" style="padding:16px">
+        <p style="font-weight:900;color:#4a148c;font-size:15px;margin-bottom:12px">👥 Sélectionne ton équipe (max 3)</p>
+        <div id="battle-mascot-select" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <p id="team-count-label" style="font-size:12px;font-weight:700;color:#ab47bc;margin-top:10px;text-align:center"></p>
+      </div>
+      <div class="glass" style="padding:16px">
+        <p style="font-weight:900;color:#4a148c;font-size:15px;margin-bottom:12px">👺 Choisis ton adversaire</p>
+        <div style="display:flex;flex-direction:column;gap:10px" id="boss-select-list"></div>
+      </div>
+    </div>
+
+    <!-- Phase: fighting -->
+    <div id="battle-fight-panel" style="display:none;flex-direction:column;gap:12px">
+      <!-- Boss zone -->
+      <div class="glass" style="padding:16px;text-align:center">
+        <div id="bf-boss-emoji" style="font-size:62px;margin-bottom:4px"></div>
+        <div id="bf-boss-name" style="font-weight:900;font-size:16px;color:#4a148c;margin-bottom:8px"></div>
+        <div style="margin-bottom:4px;font-size:12px;font-weight:700;color:#c62828">HP Boss</div>
+        <div class="battle-hp-wrap">
+          <div id="bf-boss-hp-fill" class="battle-hp-fill" style="width:100%"></div>
+        </div>
+        <div id="bf-boss-hp-label" style="font-size:12px;font-weight:700;color:#ab47bc;margin-top:4px"></div>
+      </div>
+
+      <!-- Battle log -->
+      <div class="glass" style="padding:12px 14px">
+        <div id="bf-log" class="battle-log"></div>
+      </div>
+
+      <!-- Math problem (grid calc) -->
+      <div class="glass" style="padding:16px" id="bf-math-zone">
+        <p style="font-weight:800;color:#6a1b9a;font-size:13px;margin-bottom:10px;text-align:center">🧮 Résous le calcul écrit pour attaquer !</p>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div id="bf-grid-wrap"></div>
+          <div id="bf-feedback" style="display:none;width:100%;margin-top:10px;text-align:center;font-weight:900;font-size:15px;padding:10px;border-radius:12px"></div>
+        </div>
+      </div>
+
+      <!-- Team zone -->
+      <div class="glass" style="padding:14px">
+        <p style="font-size:12px;font-weight:800;color:#4a148c;margin-bottom:10px">🐾 Ton équipe</p>
+        <div id="bf-team-display" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="pill pill-active-orange" id="bf-attack-btn" onclick="checkBattle()">⚡ Attaquer !</button>
+        <button class="pill pill-inactive" onclick="usePotion()" id="bf-potion-btn">🧪 Potion</button>
+        <button class="pill pill-inactive" onclick="confirmFleeBattle()" style="font-size:12px;padding:8px 14px">🏃 Fuir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SHOP TAB ═══ -->
+  <div id="tab-content-shop" class="tab">
+    <div class="glass" style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div>
+        <p style="font-weight:900;color:#4a148c;font-size:18px">🛒 Boutique Magique</p>
+        <p style="font-size:12px;color:#7b1fa2;font-weight:700">Dépense tes gemmes gagnées en jouant !</p>
+      </div>
+      <div style="font-size:20px;font-weight:900;color:#1565c0;background:rgba(21,101,192,.1);border-radius:12px;padding:8px 16px">
+        💎 <span id="shop-gems-display">0</span>
+      </div>
+    </div>
+
+    <!-- Cosmétiques -->
+    <div class="glass">
+      <p style="font-weight:900;color:#4a148c;font-size:15px;margin-bottom:4px">🎨 Cosmétiques</p>
+      <p style="font-size:12px;color:#8e24aa;font-weight:600;margin-bottom:14px">Change l'apparence du jeu</p>
+      <div class="shop-grid" id="shop-themes"></div>
+    </div>
+
+    <!-- Particules -->
+    <div class="glass">
+      <p style="font-weight:900;color:#4a148c;font-size:15px;margin-bottom:4px">✨ Particules spéciales</p>
+      <p style="font-size:12px;color:#8e24aa;font-weight:600;margin-bottom:14px">Des animations uniques autour de toi</p>
+      <div class="shop-grid" id="shop-parts"></div>
+    </div>
+
+    <!-- Boosters -->
+    <div class="glass">
+      <p style="font-weight:900;color:#4a148c;font-size:15px;margin-bottom:4px">⚡ Boosters</p>
+      <p style="font-size:12px;color:#8e24aa;font-weight:600;margin-bottom:14px">Des objets utiles pour avancer plus vite</p>
+      <div class="shop-grid" id="shop-boosts"></div>
+    </div>
+
+    <!-- Combat -->
+    <div class="glass">
+      <p style="font-weight:900;color:#4a148c;font-size:15px;margin-bottom:4px">⚔️ Combat</p>
+      <p style="font-size:12px;color:#8e24aa;font-weight:600;margin-bottom:14px">Des objets pour les batailles</p>
+      <div class="shop-grid" id="shop-combat"></div>
+    </div>
+  </div>
+
+  <!-- ═══ LEARN TAB ═══ -->
+  <div id="tab-content-learn" class="tab">
+    <div class="glass" style="padding:14px 16px">
+      <h2 style="font-family:'Caveat',cursive;font-size:32px;color:#7b1fa2;text-align:center;margin-bottom:10px">📖 La Soustraction</h2>
+      <p style="text-align:center;color:#9c27b0;font-size:13px;font-weight:700;margin-bottom:14px">5 cas à maîtriser · Suis les étapes !</p>
+      <!-- Case selector pills -->
+      <div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:4px" id="lesson-case-pills"></div>
+    </div>
+
+    <div class="glass">
+      <div id="lesson-case-badge" style="display:inline-block;border-radius:12px;padding:4px 14px;font-weight:900;font-size:13px;margin-bottom:10px"></div>
+      <h3 id="lesson-example" style="font-family:'Caveat',cursive;font-size:28px;color:#7b1fa2;text-align:center;margin-bottom:12px"></h3>
+      <div id="lesson-dots" style="display:flex;justify-content:center;gap:7px;margin-bottom:18px;flex-wrap:wrap"></div>
+      <h3 id="lesson-title" style="font-family:'Caveat',cursive;font-size:26px;color:#7b1fa2;margin-bottom:12px;text-align:center"></h3>
+      <div style="display:flex;justify-content:center;margin-bottom:16px">
+        <div id="lesson-grid-wrap" style="display:inline-grid;row-gap:3px;column-gap:2px;grid-template-columns:40px 64px 64px 64px"></div>
+      </div>
+      <div style="background:rgba(156,39,176,.07);border-radius:12px;padding:13px 16px;border:1.5px solid rgba(156,39,176,.2);margin-bottom:20px">
+        <p id="lesson-text" style="font-size:14px;color:#4a148c;line-height:1.65;font-weight:600"></p>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        <button class="pill pill-active-purple" id="btn-prev" onclick="lessonPrev()" style="opacity:.3" disabled>← Précédent</button>
+        <button class="pill pill-active-pink" id="btn-next" onclick="lessonNext()">Suivant →</button>
+      </div>
+    </div>
+
+    <div class="glass" style="padding:16px 18px">
+      <p style="font-weight:900;color:#6a1b9a;font-size:15px;margin-bottom:10px">📌 Règle d'or de l'emprunt :</p>
+      <p style="margin:4px 0;font-size:13px;color:#4a148c;font-weight:600">1. Toujours de droite à gauche (U → D → C → M)</p>
+      <p style="margin:4px 0;font-size:13px;color:#4a148c;font-weight:600">2. Chiffre du haut &lt; chiffre du bas → emprunt !</p>
+      <p style="margin:4px 0;font-size:13px;color:#4a148c;font-weight:600">3. La colonne voisine gauche perd 1</p>
+      <p style="margin:4px 0;font-size:13px;color:#4a148c;font-weight:600">4. Ta colonne gagne +10</p>
+      <p style="margin:4px 0;font-size:13px;color:#4a148c;font-weight:600">5. Si la voisine = 0, elle doit d'abord emprunter à la suivante !</p>
+    </div>
+  </div>
+
+  <!-- ═══ COLLECTION TAB ═══ -->
+  <div id="tab-content-collection" class="tab">
+    <div class="glass" style="text-align:center">
+      <p style="font-weight:900;color:#ab47bc;font-size:13px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Ton compagnon actuel</p>
+      <div id="coll-mascot" style="font-size:72px;margin:8px 0 4px;animation:pulse 2.5s ease infinite"></div>
+      <p id="coll-mascot-name" style="font-weight:900;font-size:20px;color:#4a148c;margin-bottom:14px"></p>
+      <p style="font-weight:700;color:#9c27b0;font-size:13px;margin-bottom:8px">Évolution du compagnon</p>
+      <div id="mascot-journey" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap"></div>
+    </div>
+    <div class="glass">
+      <p style="font-weight:900;color:#4a148c;font-size:16px;margin-bottom:14px">📊 Mes Stats</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="stats-grid"></div>
+    </div>
+    <div class="glass">
+      <p style="font-weight:900;color:#4a148c;font-size:16px;margin-bottom:16px">🏆 Mes Badges</p>
+      <div id="badges-list" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div id="next-badge-card" class="glass" style="padding:14px 18px;border:2px dashed rgba(240,98,146,.4);text-align:center;display:none">
+      <p id="next-badge-label" style="font-weight:900;color:#e91e8c;font-size:14px;margin-bottom:6px"></p>
+      <div style="font-size:38px;filter:grayscale(1);opacity:.5">🔒</div>
+      <p id="next-badge-count" style="font-weight:700;color:#9c27b0;font-size:14px;margin-top:4px"></p>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ══════════════════════════════════════════
+   DATA
+══════════════════════════════════════════ */
+const XP_PER_LEVEL = 5;
+const C = 4;
+const LABELS = ["M","C","D","U"];
+
+const MASCOTS = [
+  {min:1,  max:2,  emoji:"🥚", name:"Œuf Mystère",     hp:30,  atk:8,
+   type:"Mystère",  typeEmoji:"🔮", typeColor:"#ab47bc", typeBg:"linear-gradient(135deg,#f3e5f5,#e1bee7)",
+   evolText:"Évolue au Niv.3 →", desc:"Un mystérieux œuf dont on ne sait rien..."},
+  {min:3,  max:4,  emoji:"🐣", name:"Poussin Curieux",  hp:45,  atk:12,
+   type:"Normal",   typeEmoji:"⭐", typeColor:"#ef6c00", typeBg:"linear-gradient(135deg,#fff9c4,#ffe0b2)",
+   evolText:"Évolue au Niv.5 →", desc:"Toujours la tête hors de l'œuf, curieux de tout !"},
+  {min:5,  max:7,  emoji:"🐥", name:"Poussin Studieux", hp:60,  atk:17,
+   type:"Vent",     typeEmoji:"🌬️", typeColor:"#0097a7", typeBg:"linear-gradient(135deg,#e0f7fa,#b2ebf2)",
+   evolText:"Évolue au Niv.8 →", desc:"Il lit des livres de maths et vole déjà un peu !"},
+  {min:8,  max:10, emoji:"🦋", name:"Papillon Magique", hp:80,  atk:23,
+   type:"Magie",    typeEmoji:"✨", typeColor:"#7b1fa2", typeBg:"linear-gradient(135deg,#ede7f6,#d1c4e9)",
+   evolText:"Évolue au Niv.11 →", desc:"Sa métamorphose l'a rendu léger et puissant !"},
+  {min:11, max:14, emoji:"🌟", name:"Étoile Brillante", hp:100, atk:30,
+   type:"Céleste",  typeEmoji:"💫", typeColor:"#f57f17", typeBg:"linear-gradient(135deg,#fffde7,#fff9c4,#ffe0b2)",
+   evolText:"Évolue au Niv.15 →", desc:"Son éclat illumine la nuit la plus sombre !"},
+  {min:15, max:19, emoji:"🌈", name:"Arc-en-ciel",      hp:120, atk:38,
+   type:"Cosmos",   typeEmoji:"🌌", typeColor:"#880e4f", typeBg:"linear-gradient(135deg,#fce4ec,#e8eaf6,#e0f7fa)",
+   evolText:"Évolue au Niv.20 →", desc:"Elle traverse les cieux en laissant des couleurs !"},
+  {min:20, max:99, emoji:"👑", name:"Reine des Maths",  hp:150, atk:48,
+   type:"Divine",   typeEmoji:"🌠", typeColor:"#bf8600", typeBg:"linear-gradient(135deg,#fff8e1,#ffecb3,#fff8e1)",
+   evolText:"Forme finale !", desc:"La forme ultime. Aucun calcul ne lui résiste !"},
+];
+
+const BADGES = [
+  {id:"b1",  level:1,  emoji:"🌱", name:"Apprentie",       desc:"Premier pas vers la gloire !"},
+  {id:"b3",  level:3,  emoji:"⭐", name:"Étoile Filante",   desc:"Tu décolles comme une étoile !"},
+  {id:"b5",  level:5,  emoji:"🦋", name:"Métamorphose",     desc:"Tu as changé, en mieux !"},
+  {id:"b8",  level:8,  emoji:"🔮", name:"Magicienne",       desc:"Les chiffres n'ont plus de secrets !"},
+  {id:"b10", level:10, emoji:"🏆", name:"Championne",       desc:"Niveau 10 — incroyable !"},
+  {id:"b15", level:15, emoji:"💎", name:"Diamant",          desc:"Aussi solide qu'un diamant !"},
+  {id:"b20", level:20, emoji:"👑", name:"Reine des Maths",  desc:"Le sommet absolu. Félicitations !"},
+];
+
+const STREAK_MSGS = ["","","","🔥 x3 Combo !","🔥 x4 !","⚡ x5 SUPER COMBO !","💥 x6 INCROYABLE !"];
+
+const SHOP_ITEMS = [
+  // Themes
+  {id:"theme_default", cat:"theme", name:"Thème Rose ✨",      emoji:"🌸", price:0,  desc:"Thème original du jeu"},
+  {id:"theme_ocean",   cat:"theme", name:"Thème Océan",        emoji:"🌊", price:25, desc:"Fond bleu apaisant"},
+  {id:"theme_foret",   cat:"theme", name:"Thème Forêt",        emoji:"🌿", price:25, desc:"Fond vert nature"},
+  {id:"theme_arc",     cat:"theme", name:"Thème Arc-en-ciel",  emoji:"🌈", price:35, desc:"Fond multicolore festif"},
+  // Particules
+  {id:"parts_default", cat:"parts", name:"Particules Étoiles", emoji:"⭐", price:0,  desc:"Particules originales"},
+  {id:"parts_coeur",   cat:"parts", name:"Particules Cœurs",   emoji:"💖", price:15, desc:"Des cœurs partout !"},
+  {id:"parts_feu",     cat:"parts", name:"Particules Feu",     emoji:"🔥", price:20, desc:"Des flammes magiques !"},
+  {id:"parts_arc",     cat:"parts", name:"Particules Magie",   emoji:"✨", price:20, desc:"Poudre de fées !"},
+  // Boosts
+  {id:"double_xp",cat:"boost",name:"Double XP ×10",emoji:"⚡",price:12,desc:"×2 XP pendant 10 calculs",gives:"doubleXp",qty:10},
+  {id:"hint_x3",  cat:"boost",name:"Indice ×3",    emoji:"💡",price:8, desc:"Révèle une case réponse",gives:"hints",  qty:3},
+  {id:"shield_x2",cat:"boost",name:"Bouclier ×2",  emoji:"🛡️",price:10,desc:"Protège ton streak 2×",  gives:"shields",qty:2},
+  {id:"food_x5",  cat:"boost",name:"Friandise ×5", emoji:"🍬",price:10,desc:"+1 gemme bonus ×5 calculs",gives:"food",  qty:5},
+  // Combat
+  {id:"potion_s", cat:"combat",name:"Mini Potion", emoji:"🧪",price:8, desc:"Rend 15 HP à un compagnon",gives:"potion_s",qty:1},
+  {id:"potion_g", cat:"combat",name:"Super Potion",emoji:"💊",price:15,desc:"Rend 40 HP à un compagnon",gives:"potion_g",qty:1},
+];
+
+const THEMES_BG = {
+  theme_default:"linear-gradient(145deg,#fce4ec 0%,#f8bbd9 20%,#f3e5f5 45%,#ede7f6 70%,#e8eaf6 100%)",
+  theme_ocean:  "linear-gradient(145deg,#e0f7fa 0%,#b2ebf2 20%,#80deea 45%,#4dd0e1 70%,#0097a7 100%)",
+  theme_foret:  "linear-gradient(145deg,#f1f8e9 0%,#dcedc8 20%,#c5e1a5 45%,#aed581 70%,#558b2f 100%)",
+  theme_arc:    "linear-gradient(145deg,#fce4ec 0%,#f8bbd9 15%,#e1bee7 30%,#bbdefb 50%,#b2ebf2 70%,#c8e6c9 90%,#fff9c4 100%)",
+};
+
+const PARTS_EMOJIS = {
+  parts_default:["⭐","✨","💫","🌸","💖","🌟","🎀","💕"],
+  parts_coeur:  ["💖","💝","💕","💗","💓","🩷","❤️","💞"],
+  parts_feu:    ["🔥","✨","⚡","🌟","💥","🌠","🎆","💫"],
+  parts_arc:    ["🌈","✨","💫","🌟","🎇","⭐","🌠","💜"],
+};
+
+const BOSSES = [
+  {id:1,name:"Gobelin Calculateur",emoji:"👺",hp:60, atk:8, diff:"easy",   reward:{gems:12,xp:2},desc:"Un gobelin malin mais pas trop fort !"},
+  {id:2,name:"Dragon Chiffrant",   emoji:"🐉",hp:100,atk:15,diff:"medium", reward:{gems:20,xp:4},desc:"Le dragon crache des nombres de feu !"},
+  {id:3,name:"Sorcier des Maths",  emoji:"🧙",hp:150,atk:22,diff:"hard",   reward:{gems:35,xp:7},desc:"Le sorcier suprême... très redoutable !"},
+];
+
+// ═══ LESSONS DATA (5 cas) ═══
+const LESSONS = [
+  {
+    id:0,badge:"😊",label:"Sans emprunt",color:"#2e7d32",bgColor:"rgba(200,255,210,.25)",
+    example:"756 − 231 = ?", top:[7,5,6], bot:[2,3,1],
+    steps:[
+      {title:"On pose le calcul 📐",text:"On aligne : unités sous unités, dizaines sous dizaines, centaines sous centaines. Le grand nombre (756) toujours EN HAUT.",focus:null,struck:{},newDig:{},res:{}},
+      {title:"Colonne U : 6 − 1 ✅",text:"6 est plus grand que 1. Pas besoin d'emprunter ! On calcule directement : 6 − 1 = 5.",focus:"U",struck:{},newDig:{},res:{U:5}},
+      {title:"Colonne D : 5 − 3 ✅",text:"5 est plus grand que 3. Pas d'emprunt. On calcule : 5 − 3 = 2.",focus:"D",struck:{},newDig:{},res:{U:5,D:2}},
+      {title:"Colonne C : 7 − 2 ✅",text:"7 est plus grand que 2. Pas d'emprunt. On calcule : 7 − 2 = 5.",focus:"C",struck:{},newDig:{},res:{U:5,D:2,C:5}},
+      {title:"756 − 231 = 525 🎉",text:"Bravo ! On lit de gauche à droite : 5 centaines, 2 dizaines, 5 unités → 525. Aucun emprunt nécessaire ! Le cas le plus simple.",focus:null,struck:{},newDig:{},res:{U:5,D:2,C:5},done:true},
+    ]
+  },
+  {
+    id:1,badge:"🔄",label:"Emprunt simple",color:"#c2185b",bgColor:"rgba(252,228,236,.4)",
+    example:"532 − 278 = ?", top:[5,3,2], bot:[2,7,8],
+    steps:[
+      {title:"On pose le calcul 📐",text:"On aligne les chiffres en colonnes. Le grand nombre (532) toujours EN HAUT.",focus:null,struck:{},newDig:{},res:{}},
+      {title:"Colonne U : 2 − 8 ❌",text:"2 est plus petit que 8. On ne peut pas soustraire directement ! Il faut emprunter 1 dizaine à la colonne D.",focus:"U",struck:{},newDig:{},res:{}},
+      {title:"Emprunt D → U : 12 − 8 = 4 ✅",text:"On barre le 3 (dizaines) et on écrit 2. Les unités passent de 2 à 12 (+ 10 empruntés). On calcule : 12 − 8 = 4.",focus:"U",struck:{D:3},newDig:{D:2},res:{U:4}},
+      {title:"Colonne D : 2 − 7 ❌",text:"Après l'emprunt, D vaut 2. Mais 2 < 7. On doit emprunter encore à la colonne C !",focus:"D",struck:{D:3},newDig:{D:2},res:{U:4}},
+      {title:"Emprunt C → D : 12 − 7 = 5 ✅",text:"On barre le 5 (centaines) et on écrit 4. Les dizaines passent de 2 à 12. On calcule : 12 − 7 = 5.",focus:"D",struck:{D:3,C:5},newDig:{D:2,C:4},res:{U:4,D:5}},
+      {title:"Colonne C : 4 − 2 = 2 ✅",text:"Après l'emprunt, C vaut 4. Cette fois 4 > 2, pas besoin d'emprunter ! On calcule : 4 − 2 = 2.",focus:"C",struck:{D:3,C:5},newDig:{D:2,C:4},res:{U:4,D:5,C:2}},
+      {title:"532 − 278 = 254 🎉",text:"Bravo ! On lit le résultat de gauche à droite : 2 centaines, 5 dizaines, 4 unités → 254. Tu maîtrises les emprunts !",focus:null,struck:{D:3,C:5},newDig:{D:2,C:4},res:{U:4,D:5,C:2},done:true},
+    ]
+  },
+  {
+    id:2,badge:"0️⃣",label:"Dizaine = 0",color:"#e65100",bgColor:"rgba(255,243,224,.4)",
+    example:"503 − 128 = ?", top:[5,0,3], bot:[1,2,8],
+    steps:[
+      {title:"On pose le calcul 📐",text:"503 − 128. Attention : la dizaine de 503 est un ZÉRO ! Ça va compliquer les emprunts.",focus:null,struck:{},newDig:{},res:{}},
+      {title:"Colonne U : 3 − 8 ❌",text:"3 < 8, il faut emprunter. Mais D = 0 ! On ne peut pas emprunter à 0. Il faut d'abord aller chercher chez C.",focus:"U",struck:{},newDig:{},res:{}},
+      {title:"D emprunte à C d'abord ! 📦",text:"C (5) donne 1 à D. C passe à 4, et D passe à 10. Maintenant D peut prêter à U.",focus:"D",struck:{C:5},newDig:{C:4},res:{}},
+      {title:"D donne 1 à U : 13 − 8 = 5 ✅",text:"D passe de 10 à 9 (il a donné 1 à U). U passe de 3 à 13. On calcule : 13 − 8 = 5.",focus:"U",struck:{C:5,D:0},newDig:{C:4,D:9},res:{U:5}},
+      {title:"Colonne D : 9 − 2 = 7 ✅",text:"Après les emprunts, D vaut 9. Et 9 > 2 ! On calcule directement : 9 − 2 = 7.",focus:"D",struck:{C:5,D:0},newDig:{C:4,D:9},res:{U:5,D:7}},
+      {title:"Colonne C : 4 − 1 = 3 ✅",text:"C vaut maintenant 4 (après avoir prêté). Et 4 > 1 ! On calcule : 4 − 1 = 3.",focus:"C",struck:{C:5,D:0},newDig:{C:4,D:9},res:{U:5,D:7,C:3}},
+      {title:"503 − 128 = 375 🎉",text:"Excellent ! Le zéro au milieu ne t'a pas arrêté(e) ! 3 centaines, 7 dizaines, 5 unités → 375. Bravo !",focus:null,struck:{C:5,D:0},newDig:{C:4,D:9},res:{U:5,D:7,C:3},done:true},
+    ]
+  },
+  {
+    id:3,badge:"🔀",label:"Double emprunt",color:"#1565c0",bgColor:"rgba(225,245,254,.4)",
+    example:"842 − 567 = ?", top:[8,4,2], bot:[5,6,7],
+    steps:[
+      {title:"On pose le calcul 📐",text:"842 − 567. On va avoir besoin d'emprunter à U ET à D. C'est un double emprunt ! Pas de panique.",focus:null,struck:{},newDig:{},res:{}},
+      {title:"Colonne U : 2 − 7 ❌",text:"2 < 7. Premier emprunt ! On va chercher 1 dizaine chez D (4 dizaines).",focus:"U",struck:{},newDig:{},res:{}},
+      {title:"Emprunt D → U : 12 − 7 = 5 ✅",text:"D passe de 4 à 3, U passe de 2 à 12. On calcule : 12 − 7 = 5.",focus:"U",struck:{D:4},newDig:{D:3},res:{U:5}},
+      {title:"Colonne D : 3 − 6 ❌",text:"Après l'emprunt, D vaut 3. Mais 3 < 6. Deuxième emprunt ! On emprunte à C (8).",focus:"D",struck:{D:4},newDig:{D:3},res:{U:5}},
+      {title:"Emprunt C → D : 13 − 6 = 7 ✅",text:"C passe de 8 à 7, D passe de 3 à 13. On calcule : 13 − 6 = 7.",focus:"D",struck:{D:4,C:8},newDig:{D:3,C:7},res:{U:5,D:7}},
+      {title:"Colonne C : 7 − 5 = 2 ✅",text:"C vaut maintenant 7 (après avoir prêté à D). Et 7 > 5 ! On calcule : 7 − 5 = 2.",focus:"C",struck:{D:4,C:8},newDig:{D:3,C:7},res:{U:5,D:7,C:2}},
+      {title:"842 − 567 = 275 🎉",text:"Bravo ! Double emprunt réussi ! 2 centaines, 7 dizaines, 5 unités → 275. Tu es un(e) champion(ne) !",focus:null,struck:{D:4,C:8},newDig:{D:3,C:7},res:{U:5,D:7,C:2},done:true},
+    ]
+  },
+  {
+    id:4,badge:"💯",label:"Deux zéros",color:"#6a1b9a",bgColor:"rgba(237,231,246,.4)",
+    example:"300 − 147 = ?", top:[3,0,0], bot:[1,4,7],
+    steps:[
+      {title:"On pose le calcul 📐",text:"300 − 147. Les deux chiffres du bas de 300 sont des ZÉROS ! Il va falloir beaucoup emprunter. Accroche-toi !",focus:null,struck:{},newDig:{},res:{}},
+      {title:"Colonne U : 0 − 7 ❌",text:"0 < 7. Il faut emprunter. Mais D = 0 aussi ! D doit d'abord aller chercher chez C avant de pouvoir donner à U.",focus:"U",struck:{},newDig:{},res:{}},
+      {title:"D emprunte à C : C → 2, D → 10 📦",text:"C (3) donne 1 à D. C passe à 2 et D passe à 10. Maintenant D peut donner à U.",focus:"D",struck:{C:3},newDig:{C:2},res:{}},
+      {title:"D donne à U : D → 9, U → 10 − 7 = 3 ✅",text:"D passe de 10 à 9 (donne 1 à U). U passe de 0 à 10. On calcule : 10 − 7 = 3.",focus:"U",struck:{C:3,D:0},newDig:{C:2,D:9},res:{U:3}},
+      {title:"Colonne D : 9 − 4 = 5 ✅",text:"D vaut 9 maintenant. Et 9 > 4 ! On calcule directement : 9 − 4 = 5.",focus:"D",struck:{C:3,D:0},newDig:{C:2,D:9},res:{U:3,D:5}},
+      {title:"Colonne C : 2 − 1 = 1 ✅",text:"C vaut 2 maintenant (après avoir prêté). Et 2 > 1 ! On calcule : 2 − 1 = 1.",focus:"C",struck:{C:3,D:0},newDig:{C:2,D:9},res:{U:3,D:5,C:1}},
+      {title:"300 − 147 = 153 🎉",text:"Exceptionnel ! Deux zéros vaincus en chaîne ! 1 centaine, 5 dizaines, 3 unités → 153. Tu es une vraie magicienne des maths !",focus:null,struck:{C:3,D:0},newDig:{C:2,D:9},res:{U:3,D:5,C:1},done:true},
+    ]
+  },
+];
+
+/* ══════════════════════════════════════════
+   GAME STATE
+══════════════════════════════════════════ */
+let state = {
+  level:1, xp:0, gems:0, streak:0, totalCorrect:0,
+  unlockedBadges:["b1"],
+  // Play
+  op:"+", nums:[], ans:Array(C).fill(""), ret:Array(C).fill(""),
+  done:false, rd:[], retenues:[], result:0,
+  gameMode:"normal",
+  // Challenge
+  challengeAnswers:[],
+  // Speed
+  speedActive:false, speedScore:0, speedTime:90, speedOp:"+",
+  speedTimerID:null,
+  // Shop
+  purchased:["theme_default","parts_default"],
+  equippedTheme:"theme_default", equippedParts:"parts_default",
+  doubleXpLeft:0, hintTokens:0, shieldTokens:0, foodLeft:0,
+  potion_s:0, potion_g:0,
+  pendingShopItem:null,
+  // Battle
+  battle:{
+    phase:"idle",
+    selectedMascots:[],
+    boss:null,
+    mascotHP:[],
+    bossHP:0,
+    activeMascot:0,
+    question:"", answer:0,
+    log:[],
+    // Battle calc grid state
+    bNums:[], bOp:"+", bAns:Array(C).fill(""), bRet:Array(C).fill(""),
+    bRd:[], bRetenues:[], bResult:0, bDone:false,
+  },
+  // Lesson
+  lessonStep:0, lessonCase:0,
+  currentTab:"play",
+};
+
+/* ══════════════════════════════════════════
+   PERSISTENCE
+══════════════════════════════════════════ */
+function saveState(){
+  try{
+    const s={level:state.level,xp:state.xp,gems:state.gems,streak:state.streak,
+      totalCorrect:state.totalCorrect,unlockedBadges:state.unlockedBadges,
+      purchased:state.purchased,equippedTheme:state.equippedTheme,
+      equippedParts:state.equippedParts,doubleXpLeft:state.doubleXpLeft,
+      hintTokens:state.hintTokens,shieldTokens:state.shieldTokens,
+      foodLeft:state.foodLeft,potion_s:state.potion_s,potion_g:state.potion_g};
+    localStorage.setItem('mathmagique',JSON.stringify(s));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('mathmagique');
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    Object.assign(state,s);
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+function digs(n){
+  const s=Math.abs(Math.round(n)).toString();
+  return Array(C-s.length).fill(null).concat(s.split("").map(Number));
+}
+
+function genProb(op){
+  if(op==="+"){
+    if(rnd(0,1)===1){
+      // 3 nombres (100-999)
+      let a,b,c;
+      do{a=rnd(100,999);b=rnd(100,999);c=rnd(100,999);}while(a+b+c>9999);
+      return [a,b,c];
+    }else{
+      // 2 nombres
+      let a,b;
+      do{a=rnd(100,4999);b=rnd(100,4999);}while(a+b>9999||a+b<500);
+      return [a,b];
+    }
+  }
+  const a=rnd(1000,9999);
+  const b=rnd(50,Math.min(a-1,5000));
+  return [a,b];
+}
+
+function computeInfo(op,nums){
+  if(op==="+"){
+    const result=nums.reduce((s,n)=>s+n,0);
+    const ret=Array(C).fill(0);let carry=0;
+    for(let c=C-1;c>=0;c--){
+      ret[c]=carry;let s=carry;
+      nums.forEach(n=>{s+=(digs(n)[c]??0);});
+      carry=Math.floor(s/10);
+    }
+    return{result,rd:digs(result),ret};
+  }
+  return{result:nums[0]-nums[1],rd:digs(nums[0]-nums[1]),ret:Array(C).fill(0)};
+}
+
+function getMascot(level){
+  return MASCOTS.find(m=>level>=m.min&&level<=m.max)||MASCOTS[MASCOTS.length-1];
+}
+function getMascotIdx(level){
+  const idx=MASCOTS.findIndex(m=>level>=m.min&&level<=m.max);
+  return idx<0?MASCOTS.length-1:idx;
+}
+
+/* ══════════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════════ */
+function initParticles(){
+  const emojis=PARTS_EMOJIS[state.equippedParts]||PARTS_EMOJIS.parts_default;
+  const wrap=document.getElementById("particles");
+  wrap.innerHTML="";
+  for(let i=0;i<18;i++){
+    const d=document.createElement("div");
+    d.className="particle";
+    d.textContent=emojis[i%emojis.length];
+    const x=rnd(2,98),y=rnd(5,95),sz=rnd(14,26),dur=rnd(6,14),delay=rnd(0,8);
+    d.style.cssText=`left:${x}%;top:${y}%;font-size:${sz}px;opacity:${rnd(15,35)/100};--dur:${dur}s;--delay:${delay}s`;
+    wrap.appendChild(d);
+  }
+}
+
+function applyTheme(){
+  const bg=THEMES_BG[state.equippedTheme]||THEMES_BG.theme_default;
+  document.body.style.setProperty('--bg',bg);
+}
+
+/* ══════════════════════════════════════════
+   CONFETTI & STREAK
+══════════════════════════════════════════ */
+function showConfetti(){
+  const layer=document.getElementById("confetti-layer");
+  layer.innerHTML="";layer.style.display="block";
+  const shapes=["⭐","🌟","✨","🎉","🎊","💖","🌸","🍬","🦋","💫"];
+  for(let i=0;i<24;i++){
+    const d=document.createElement("div");
+    d.className="conf";d.textContent=shapes[i%shapes.length];
+    d.style.cssText=`left:${rnd(3,97)}%;font-size:${rnd(20,38)}px;--dur:${rnd(1800,2800)}ms;--delay:${rnd(0,1200)}ms`;
+    layer.appendChild(d);
+  }
+  setTimeout(()=>{layer.style.display="none";},3500);
+}
+function flashStreak(msg){
+  const el=document.getElementById("streak-flash");
+  el.textContent=msg;el.style.display="block";
+  setTimeout(()=>{el.style.display="none";},2200);
+}
+
+/* ══════════════════════════════════════════
+   HUD UPDATE
+══════════════════════════════════════════ */
+function updateHUD(){
+  const m=getMascot(state.level);
+  document.getElementById("hud-mascot").textContent=m.emoji;
+  document.getElementById("hud-level").textContent=`Niv. ${state.level}`;
+  document.getElementById("hud-mascot-name").textContent=m.name;
+  document.getElementById("hud-xp-label").textContent=`${state.xp}/${XP_PER_LEVEL} XP`;
+  document.getElementById("xp-fill").style.width=`${(state.xp/XP_PER_LEVEL)*100}%`;
+  document.getElementById("hud-gems").textContent=`💎 ${state.gems}`;
+  document.getElementById("hud-streak").textContent=`🔥 ${state.streak}`;
+  document.getElementById("hud-correct").textContent=`✅ ${state.totalCorrect}`;
+  // Boosts
+  const boostParts=[];
+  if(state.doubleXpLeft>0)boostParts.push(`⚡×${state.doubleXpLeft}`);
+  if(state.hintTokens>0)boostParts.push(`💡×${state.hintTokens}`);
+  if(state.shieldTokens>0)boostParts.push(`🛡️×${state.shieldTokens}`);
+  if(state.foodLeft>0)boostParts.push(`🍬×${state.foodLeft}`);
+  document.getElementById("hud-boosts").textContent=boostParts.join("  ");
+  // Hint button visibility
+  const hintBtn=document.getElementById("btn-hint");
+  if(hintBtn)hintBtn.style.display=state.hintTokens>0?"inline-flex":"none";
+}
+
+/* ══════════════════════════════════════════
+   LEVEL UP
+══════════════════════════════════════════ */
+function showLevelUp(level,newBadges){
+  const m=getMascot(level);
+  document.getElementById("lu-mascot").textContent=m.emoji;
+  document.getElementById("lu-level").textContent=level;
+  document.getElementById("lu-name").textContent=m.name;
+  const badgeDiv=document.getElementById("lu-badge");
+  if(newBadges.length>0){
+    const b=newBadges[0];
+    document.getElementById("lu-badge-emoji").textContent=b.emoji;
+    document.getElementById("lu-badge-name").textContent=b.name;
+    document.getElementById("lu-badge-desc").textContent=b.desc;
+    badgeDiv.style.display="block";
+  }else badgeDiv.style.display="none";
+  document.getElementById("levelup-modal").classList.add("show");
+}
+function closeLevelUp(){
+  document.getElementById("levelup-modal").classList.remove("show");
+}
+
+/* ══════════════════════════════════════════
+   XP & GEMS AWARD
+══════════════════════════════════════════ */
+function awardXP(baseXP=1){
+  let xp=baseXP;
+  if(state.doubleXpLeft>0){xp*=2;state.doubleXpLeft--;if(state.doubleXpLeft===0)showToast("⚡ Double XP terminé !");}
+  let gems=1;
+  if(state.foodLeft>0){gems++;state.foodLeft--;if(state.foodLeft===0)showToast("🍬 Friandises épuisées !");}
+  state.gems+=gems;
+  state.xp+=xp;
+  const newBadges=[];
+  while(state.xp>=XP_PER_LEVEL){
+    state.xp-=XP_PER_LEVEL;
+    state.level++;
+    const b=BADGES.find(b=>b.level===state.level&&!state.unlockedBadges.includes(b.id));
+    if(b){state.unlockedBadges.push(b.id);newBadges.push(b);}
+  }
+  updateHUD();
+  if(newBadges.length>0||state.xp===0){showConfetti();showLevelUp(state.level,newBadges);}
+  saveState();
+}
+
+function showToast(msg){
+  const el=document.getElementById("streak-flash");
+  el.textContent=msg;el.style.display="block";
+  setTimeout(()=>{el.style.display="none";},2000);
+}
+
+/* ══════════════════════════════════════════
+   TAB MANAGEMENT
+══════════════════════════════════════════ */
+const TAB_STYLES={
+  play:"pill-active-pink", speed:"pill-active-teal",
+  battle:"pill-active-orange", shop:"pill-active-gold",
+  learn:"pill-active-purple", collection:"pill-active-blue"
+};
+
+function showTab(name){
+  if(state.speedActive&&name!=="speed"){stopSpeed(true);}
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".tab-nav button").forEach(b=>{
+    b.className="pill pill-inactive";
+  });
+  document.getElementById("tab-content-"+name).classList.add("active");
+  document.getElementById("btn-tab-"+name).className=`pill ${TAB_STYLES[name]}`;
+  state.currentTab=name;
+  if(name==="collection")renderCollection();
+  if(name==="shop")renderShop();
+  if(name==="learn")renderLesson();
+  if(name==="battle")renderBattle();
+}
+
+/* ══════════════════════════════════════════
+   CALC GRID RENDER (Play mode)
+══════════════════════════════════════════ */
+function renderGrid(target="calc-grid-wrap"){
+  const {op,nums,done,ans,ret:retState,rd,retenues}=state;
+  const wrap=document.getElementById(target);
+  let html=`<div style="display:inline-grid;grid-template-columns:44px repeat(${C},62px);row-gap:4px;column-gap:3px">`;
+
+  html+=`<div></div>`;
+  LABELS.forEach(l=>{html+=`<div class="col-header">${l}</div>`;});
+
+  nums.forEach((n,ri)=>{
+    const ds=digs(n);
+    const sign=ri===0?"":op==="+"?"+":"−";
+    html+=`<div class="sign-cell" style="visibility:${ri===0?"hidden":"visible"}">${sign}</div>`;
+    ds.forEach((d,ci)=>{
+      if(d===null){html+=`<div style="width:62px;height:62px"></div>`;}
+      else{html+=`<div class="num-cell">${d}</div>`;}
+    });
+  });
+
+  html+=`<div style="grid-column:1/-1" class="sep"></div>`;
+
+  // Retenues row (addition only)
+  if(op==="+"){
+    html+=`<div class="ret-label">ret.</div>`;
+    for(let c=0;c<C;c++){
+      const hasRet=retenues[c]>0;
+      html+=`<div class="ret-cell">`;
+      if(hasRet){
+        const val=done?retenues[c]:"";
+        const filled=retState[c]!==""&&!done;
+        html+=`<input type="number" class="ret-input" data-r="${c}" value="${done?retenues[c]:retState[c]}" ${done?"disabled":""} placeholder="" oninput="retChange(this,${c})" onkeydown="retKey(event,${c})"/>`;
+      }else{html+=`<div></div>`;}
+      html+=`</div>`;
+    }
+  }
+
+  // Answer row
+  html+=`<div class="ans-cell-wrap"></div>`;
+  for(let c=0;c<C;c++){
+    const correct=rd[c];
+    if(correct===null&&!done){html+=`<div style="width:62px;height:62px"></div>`;continue;}
+    if(correct===null&&done){html+=`<div class="num-cell" style="color:#2e7d32">0</div>`;continue;}
+    html+=`<div><input type="number" class="ans-input ${done?(ans[c]==rd[c]?"ok":"err"):""}" data-c="${c}" value="${ans[c]}" ${done?"disabled":""} min="0" max="9" placeholder="" oninput="ansChange(this,${c})" onkeydown="ansKey(event,${c})"/></div>`;
+  }
+  html+=`</div>`;
+  wrap.innerHTML=html;
+}
+
+function ansChange(el,c){
+  const v=el.value.replace(/[^0-9]/g,"");
+  el.value=v;
+  state.ans[c]=v===""?"":parseInt(v);
+  if(v.length>=1){
+    const next=document.querySelector(`[data-c="${c+1}"]`)||document.querySelector('[id^="btn-check"]');
+    if(next&&next.tagName==="INPUT")next.focus();
+  }
+}
+function ansKey(e,c){
+  if(e.key==="Enter")check();
+  if(e.key==="ArrowRight"){const n=document.querySelector(`[data-c="${c+1}"]`);if(n)n.focus();}
+  if(e.key==="ArrowLeft"&&c>0){const n=document.querySelector(`[data-c="${c-1}"]`);if(n)n.focus();}
+}
+function retChange(el,c){state.ret[c]=el.value===""?"":parseInt(el.value);}
+function retKey(e,c){if(e.key==="Enter")check();}
+
+/* ══════════════════════════════════════════
+   SWITCH OP & MODE
+══════════════════════════════════════════ */
+function switchOp(op){
+  state.op=op;
+  document.getElementById("btn-add").className=`pill ${op==="+"?"pill-active-blue":"pill-inactive"}`;
+  document.getElementById("btn-sub").className=`pill ${op==="-"?"pill-active-blue":"pill-inactive"}`;
+  const tip=op==="+"?"Va de droite à gauche (U → D → C → M). Parfois 2 nombres, parfois 3 — les retenues peuvent valoir 2 !":"Va de droite à gauche. Si le chiffre du haut est plus petit → emprunt à la colonne voisine.";
+  document.getElementById("tip-text").textContent=tip;
+  newProb();
+}
+
+function setMode(mode){
+  if(state.gameMode===mode)return;
+  state.gameMode=mode;
+  document.getElementById("btn-mode-normal").className=`pill ${mode==="normal"?"pill-active-pink":"pill-inactive"}`;
+  document.getElementById("btn-mode-challenge").className=`pill ${mode==="challenge"?"pill-active-gold":"pill-inactive"}`;
+  if(mode==="challenge"){
+    state.challengeAnswers=[];
+    renderChallengePanel();
+    document.getElementById("challenge-panel").style.display="block";
+  }else{
+    document.getElementById("challenge-panel").style.display="none";
+  }
+  newProb();
+}
+
+function renderChallengePanel(){
+  const q=state.challengeAnswers.length+1;
+  document.getElementById("chal-q").textContent=Math.min(q,10);
+  const dots=document.getElementById("chal-dots");
+  dots.innerHTML="";
+  for(let i=0;i<10;i++){
+    const d=document.createElement("div");
+    d.className="challenge-dot"+(i<state.challengeAnswers.length?(state.challengeAnswers[i]?" ok":" err"):"");
+    dots.appendChild(d);
+  }
+}
+
+/* ══════════════════════════════════════════
+   NEW PROBLEM
+══════════════════════════════════════════ */
+function newProb(){
+  state.nums=genProb(state.op);
+  const info=computeInfo(state.op,state.nums);
+  state.rd=info.rd;state.retenues=info.ret;state.result=info.result;
+  state.ans=Array(C).fill("");state.ret=Array(C).fill("");state.done=false;
+  document.getElementById("feedback").style.display="none";
+  renderGrid();
+  setTimeout(()=>{const f=document.querySelector(".ans-input");if(f)f.focus();},80);
+}
+
+/* ══════════════════════════════════════════
+   CHECK ANSWER
+══════════════════════════════════════════ */
+function check(){
+  if(state.done)return;
+  const allFilled=state.rd.every((v,i)=>v===null||state.ans[i]!=="");
+  if(!allFilled){showToast("Remplis toutes les cases !");return;}
+
+  let correct=true;
+  for(let i=0;i<C;i++){
+    if(state.rd[i]!==null&&parseInt(state.ans[i])!==state.rd[i]){correct=false;break;}
+  }
+  state.done=true;
+  renderGrid();
+
+  const fb=document.getElementById("feedback");
+  fb.style.display="block";
+
+  if(correct){
+    state.streak++;state.totalCorrect++;
+    const msg=STREAK_MSGS[Math.min(state.streak,STREAK_MSGS.length-1)];
+    fb.className="feedback ok";
+    fb.innerHTML=`<div class="feedback-emoji">🎉</div><div class="feedback-msg">Bravo ! ${state.result} 🌟</div>`;
+    if(msg)flashStreak(msg);
+    if(state.gameMode==="challenge"){
+      state.challengeAnswers.push(true);
+      renderChallengePanel();
+      if(state.challengeAnswers.length>=10){endChallenge();return;}
+    }
+    awardXP(1);
+    setTimeout(newProb,1600);
+  }else{
+    if(state.shieldTokens>0){state.shieldTokens--;showToast("🛡️ Bouclier activé ! Streak sauvé !");saveState();}
+    else state.streak=0;
+    fb.className="feedback err";
+    fb.innerHTML=`<div class="feedback-emoji">💪</div><div class="feedback-msg">La réponse était : ${state.result}</div>`;
+    if(state.gameMode==="challenge"){
+      state.challengeAnswers.push(false);
+      renderChallengePanel();
+      if(state.challengeAnswers.length>=10){endChallenge();return;}
+    }
+    updateHUD();
+    saveState();
+    setTimeout(newProb,2000);
+  }
+}
+
+function endChallenge(){
+  const correct=state.challengeAnswers.filter(Boolean).length;
+  const xpEarned=correct;
+  const gems=correct>=8?5:correct>=5?2:0;
+  state.gems+=gems;
+  let emoji=correct===10?"🏆":correct>=7?"🌟":correct>=5?"👍":"💪";
+  let msg=correct===10?"PARFAIT ! 10/10 incroyable !":
+    `${correct}/10 bonnes réponses`;
+  showConfetti();
+  const fb=document.getElementById("feedback");
+  fb.className="feedback ok";
+  fb.style.display="block";
+  fb.innerHTML=`<div class="feedback-emoji">${emoji}</div><div class="feedback-msg">${msg}</div>
+    <div style="font-size:13px;margin-top:6px;color:#2e7d32;font-weight:700">+${xpEarned} XP${gems>0?` · +${gems} 💎`:""}</div>`;
+  // Reset challenge
+  setTimeout(()=>{
+    state.challengeAnswers=[];
+    state.gameMode="normal";
+    document.getElementById("challenge-panel").style.display="none";
+    document.getElementById("btn-mode-challenge").className="pill pill-inactive";
+    document.getElementById("btn-mode-normal").className="pill pill-active-pink";
+    state.done=false;
+    awardXP(xpEarned);
+    newProb();
+  },3000);
+}
+
+function useHint(){
+  if(state.hintTokens<=0||state.done)return;
+  state.hintTokens--;
+  // Reveal first empty correct answer
+  for(let i=0;i<C;i++){
+    if(state.rd[i]!==null&&state.ans[i]===""){
+      state.ans[i]=state.rd[i];
+      const input=document.querySelector(`[data-c="${i}"]`);
+      if(input){input.value=state.rd[i];input.classList.add("ok");}
+      break;
+    }
+  }
+  updateHUD();saveState();
+  showToast("💡 Indice utilisé !");
+}
+
+/* ══════════════════════════════════════════
+   SPEED MODE
+══════════════════════════════════════════ */
+function startSpeed(op){
+  state.speedOp=op;
+  state.speedScore=0;
+  state.speedTime=90;
+  state.speedActive=true;
+  document.getElementById("speed-start-panel").style.display="none";
+  document.getElementById("speed-result-panel").style.display="none";
+  const pp=document.getElementById("speed-play-panel");
+  pp.style.display="flex";
+  document.getElementById("speed-timer-wrap").style.display="block";
+  document.getElementById("speed-time-label").style.display="block";
+  document.getElementById("speed-score-display").style.display="block";
+  genSpeedProb();
+  state.speedTimerID=setInterval(tickSpeed,1000);
+}
+
+function genSpeedProb(){
+  const op=state.speedOp==="mix"?(rnd(0,1)?"+":"-"):state.speedOp;
+  const nums=genProb(op);
+  const info=computeInfo(op,nums);
+  state.op=op;state.nums=nums;state.rd=info.rd;state.retenues=info.ret;state.result=info.result;
+  state.ans=Array(C).fill("");state.ret=Array(C).fill("");state.done=false;
+  document.getElementById("speed-feedback").style.display="none";
+  renderGrid("speed-grid-wrap");
+  document.getElementById("speed-score-val").textContent=state.speedScore;
+  setTimeout(()=>{const f=document.querySelector("#speed-grid-wrap .ans-input");if(f)f.focus();},60);
+}
+
+function checkSpeed(){
+  if(state.done)return;
+  const allFilled=state.rd.every((v,i)=>v===null||state.ans[i]!=="");
+  if(!allFilled){showToast("Remplis toutes les cases !");return;}
+  let correct=true;
+  for(let i=0;i<C;i++){
+    if(state.rd[i]!==null&&parseInt(state.ans[i])!==state.rd[i]){correct=false;break;}
+  }
+  state.done=true;
+  renderGrid("speed-grid-wrap");
+  const sfb=document.getElementById("speed-feedback");
+  sfb.style.display="block";
+  // Show Suivant button, hide Valider
+  document.getElementById("btn-speed-check").style.display="none";
+  document.getElementById("btn-speed-next").style.display="inline-flex";
+  if(correct){
+    state.speedScore++;
+    state.totalCorrect++;
+    document.getElementById("speed-score-val").textContent=state.speedScore;
+    sfb.className="feedback ok";sfb.innerHTML=`<div class="feedback-emoji">⚡</div><div class="feedback-msg">Bravo ! +1 — ${state.result}</div>`;
+  }else{
+    sfb.className="feedback err";sfb.innerHTML=`<div class="feedback-emoji">❌</div><div class="feedback-msg">La réponse était : ${state.result}</div>`;
+  }
+}
+
+function nextSpeedProb(){
+  document.getElementById("btn-speed-check").style.display="inline-flex";
+  document.getElementById("btn-speed-next").style.display="none";
+  genSpeedProb();
+}
+
+function tickSpeed(){
+  state.speedTime--;
+  const pct=(state.speedTime/90)*100;
+  const fill=document.getElementById("speed-timer-fill");
+  fill.style.width=pct+"%";
+  fill.className="speed-timer-fill"+(state.speedTime<=20?" danger":state.speedTime<=40?" warn":"");
+  document.getElementById("speed-time-label").textContent=`⏱️ ${state.speedTime}s`;
+  if(state.speedTime<=0)stopSpeed(false);
+}
+
+function stopSpeed(userAbort){
+  clearInterval(state.speedTimerID);
+  state.speedActive=false;
+  document.getElementById("speed-play-panel").style.display="none";
+  document.getElementById("btn-speed-check").style.display="inline-flex";
+  document.getElementById("btn-speed-next").style.display="none";
+  if(!userAbort){
+    const xpEarned=Math.floor(state.speedScore*1.5);
+    document.getElementById("speed-result-panel").style.display="block";
+    document.getElementById("speed-final-score").textContent=state.speedScore;
+    document.getElementById("speed-xp-earned").textContent=`+${xpEarned} XP pour ton compagnon !`;
+    awardXP(xpEarned);
+  }else{
+    document.getElementById("speed-start-panel").style.display="block";
+    document.getElementById("speed-timer-wrap").style.display="none";
+    document.getElementById("speed-time-label").style.display="none";
+    document.getElementById("speed-score-display").style.display="none";
+  }
+}
+
+function resetSpeed(){
+  document.getElementById("speed-result-panel").style.display="none";
+  document.getElementById("speed-start-panel").style.display="block";
+  document.getElementById("speed-timer-wrap").style.display="none";
+  document.getElementById("speed-time-label").style.display="none";
+  document.getElementById("speed-score-display").style.display="none";
+}
+
+/* ══════════════════════════════════════════
+   SHOP
+══════════════════════════════════════════ */
+function renderShop(){
+  document.getElementById("shop-gems-display").textContent=state.gems;
+  renderShopCat("shop-themes","theme");
+  renderShopCat("shop-parts","parts");
+  renderShopCat("shop-boosts","boost");
+  renderShopCat("shop-combat","combat");
+}
+
+function renderShopCat(containerId,cat){
+  const el=document.getElementById(containerId);
+  const items=SHOP_ITEMS.filter(i=>i.cat===cat);
+  el.innerHTML=items.map(item=>{
+    const owned=state.purchased.includes(item.id)||item.price===0;
+    const isTheme=item.cat==="theme";
+    const isParts=item.cat==="parts";
+    const equipped=(isTheme&&state.equippedTheme===item.id)||(isParts&&state.equippedParts===item.id);
+    let badge="";
+    if(equipped)badge=`<div style="font-size:11px;font-weight:900;color:#e65100;margin-bottom:4px">✔ Équipé</div>`;
+    else if(owned)badge=`<div style="font-size:11px;font-weight:900;color:#2e7d32;margin-bottom:4px">✔ Possédé</div>`;
+    // Count owned consumables
+    let countStr="";
+    if(item.gives){
+      const cur=state[item.gives==="doubleXp"?"doubleXpLeft":item.gives==="hints"?"hintTokens":item.gives==="shields"?"shieldTokens":item.gives==="food"?"foodLeft":item.gives==="potion_s"?"potion_s":"potion_g"];
+      if(cur>0)countStr=`<div style="font-size:11px;color:#7b1fa2;font-weight:700;margin-bottom:4px">En stock : ${cur}</div>`;
+    }
+    const canBuy=!owned&&item.price<=state.gems;
+    const btnLabel=owned?(equipped?"✔ Équipé":(isTheme||isParts)?"🎨 Équiper":"✔ Possédé"):`💎 ${item.price}`;
+    const btnClass=owned?(equipped?"pill-active-gold":canBuy||owned?"pill-active-green":"pill-inactive"):(canBuy?"pill-active-blue":"pill-inactive");
+    return `<div class="shop-item ${owned?(equipped?"equipped":"owned"):""}" onclick="shopClick('${item.id}')">
+      <div class="shop-item-emoji">${item.emoji}</div>
+      ${badge}
+      <div class="shop-item-name">${item.name}</div>
+      <div class="shop-item-desc">${item.desc}</div>
+      ${countStr}
+      <div><button class="pill ${btnClass}" style="font-size:12px;padding:5px 14px;pointer-events:none">${btnLabel}</button></div>
+    </div>`;
+  }).join("");
+}
+
+function shopClick(id){
+  const item=SHOP_ITEMS.find(i=>i.id===id);
+  if(!item)return;
+  const owned=state.purchased.includes(item.id)||item.price===0;
+  if(owned){
+    // Equip if theme/parts, otherwise ignore
+    if(item.cat==="theme"){state.equippedTheme=id;applyTheme();saveState();renderShop();showToast("🎨 Thème équipé !");}
+    else if(item.cat==="parts"){state.equippedParts=id;initParticles();saveState();renderShop();showToast("✨ Particules équipées !");}
+    else{showToast("Tu possèdes déjà cet objet !");}
+    return;
+  }
+  if(item.price>state.gems){showToast("Pas assez de 💎 gemmes !");return;}
+  // Show confirm
+  state.pendingShopItem=item;
+  document.getElementById("sc-emoji").textContent=item.emoji;
+  document.getElementById("sc-name").textContent=item.name;
+  document.getElementById("sc-desc").textContent=item.desc;
+  document.getElementById("sc-price").textContent=`Prix : ${item.price} 💎 (tu en as ${state.gems})`;
+  document.getElementById("shop-confirm-modal").classList.add("show");
+}
+
+function closeShopConfirm(){
+  document.getElementById("shop-confirm-modal").classList.remove("show");
+  state.pendingShopItem=null;
+}
+
+function confirmBuy(){
+  const item=state.pendingShopItem;
+  if(!item)return;
+  state.gems-=item.price;
+  if(item.cat==="theme"||item.cat==="parts"){
+    if(!state.purchased.includes(item.id))state.purchased.push(item.id);
+    if(item.cat==="theme"){state.equippedTheme=item.id;applyTheme();}
+    else{state.equippedParts=item.id;initParticles();}
+  }else{
+    // Consumable
+    if(!state.purchased.includes(item.id))state.purchased.push(item.id);
+    if(item.gives==="doubleXp")state.doubleXpLeft+=item.qty;
+    else if(item.gives==="hints")state.hintTokens+=item.qty;
+    else if(item.gives==="shields")state.shieldTokens+=item.qty;
+    else if(item.gives==="food")state.foodLeft+=item.qty;
+    else if(item.gives==="potion_s")state.potion_s+=item.qty;
+    else if(item.gives==="potion_g")state.potion_g+=item.qty;
+    // Allow re-buying consumables
+    state.purchased=state.purchased.filter(p=>p!==item.id);
+  }
+  closeShopConfirm();
+  updateHUD();saveState();renderShop();
+  showConfetti();showToast(`${item.emoji} Acheté ! Profite bien !`);
+}
+
+/* ══════════════════════════════════════════
+   BATTLE
+══════════════════════════════════════════ */
+function renderBattle(){
+  const bt=state.battle;
+  if(bt.phase==="idle"){
+    document.getElementById("battle-idle-panel").style.display="block";
+    document.getElementById("battle-fight-panel").style.display="none";
+    renderBattleMascotSelect();
+    renderBossSelect();
+  }else if(bt.phase==="fight"){
+    document.getElementById("battle-idle-panel").style.display="none";
+    const fp=document.getElementById("battle-fight-panel");
+    fp.style.display="flex";
+    renderFightUI();
+  }
+}
+
+function renderBattleMascotSelect(){
+  const wrap=document.getElementById("battle-mascot-select");
+  wrap.innerHTML="";
+  MASCOTS.forEach((m,i)=>{
+    const unlocked=state.level>=m.min;
+    const selected=state.battle.selectedMascots.includes(i);
+    const card=document.createElement("div");
+    card.style.cssText=`flex:1;min-width:90px;max-width:120px;border-radius:18px;padding:12px 8px;text-align:center;cursor:${unlocked?"pointer":"not-allowed"};
+      background:${m.typeBg};border:3px solid ${selected?"#ffd600":unlocked?"rgba(255,255,255,.8)":"#ddd"};
+      box-shadow:${selected?"0 4px 16px rgba(255,214,0,.5)":"0 2px 8px rgba(0,0,0,.06)"};
+      opacity:${unlocked?"1":".45"};transition:all .2s;
+      filter:${unlocked?"none":"grayscale(1)"}`;
+    card.innerHTML=`
+      <div style="font-size:38px;margin-bottom:4px">${m.emoji}</div>
+      <div style="font-size:10px;font-weight:900;background:${m.typeColor};color:#fff;border-radius:99px;padding:2px 6px;margin-bottom:4px;display:inline-block">${m.typeEmoji} ${m.type}</div>
+      <div style="font-size:11px;font-weight:900;color:#4a148c">${m.name}</div>
+      <div style="font-size:10px;color:#7b1fa2;font-weight:700;margin-top:3px">❤️${m.hp} ⚔️${m.atk}</div>
+      ${unlocked?"":` <div style="font-size:10px;color:#999;font-weight:700;margin-top:2px">🔒 Niv.${m.min}</div>`}
+      ${selected?`<div style="font-size:11px;font-weight:900;color:#e65100;margin-top:4px">✓ Sélectionné</div>`:""}
+    `;
+    if(unlocked)card.onclick=()=>toggleBattleMascot(i);
+    wrap.appendChild(card);
+  });
+  updateTeamLabel();
+}
+
+function toggleBattleMascot(i){
+  const bt=state.battle;
+  const idx=bt.selectedMascots.indexOf(i);
+  if(idx>=0)bt.selectedMascots.splice(idx,1);
+  else if(bt.selectedMascots.length<3)bt.selectedMascots.push(i);
+  else{showToast("Maximum 3 compagnons !");return;}
+  renderBattleMascotSelect();
+}
+
+function updateTeamLabel(){
+  const n=state.battle.selectedMascots.length;
+  document.getElementById("team-count-label").textContent=n===0?"Sélectionne au moins 1 compagnon":`${n}/3 compagnon${n>1?"s":""} sélectionné${n>1?"s":""}`;
+}
+
+function renderBossSelect(){
+  const wrap=document.getElementById("boss-select-list");
+  wrap.innerHTML=BOSSES.map(boss=>`
+    <div class="boss-card boss-${boss.diff}" onclick="startBattle(${boss.id})">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="font-size:48px">${boss.emoji}</div>
+        <div style="flex:1">
+          <div style="font-weight:900;font-size:16px;color:#4a148c">${boss.name}</div>
+          <div style="font-size:12px;color:#7b1fa2;font-weight:600;margin-bottom:4px">${boss.desc}</div>
+          <div style="display:flex;gap:10px;font-size:12px;font-weight:700">
+            <span style="color:#c62828">❤️ ${boss.hp} HP</span>
+            <span style="color:#e65100">⚔️ ${boss.atk} ATK</span>
+            <span style="color:#1565c0">🎁 ${boss.reward.gems}💎 +${boss.reward.xp}XP</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function startBattle(bossId){
+  if(state.battle.selectedMascots.length===0){showToast("Sélectionne au moins un compagnon !");return;}
+  const boss=BOSSES.find(b=>b.id===bossId);
+  const bt=state.battle;
+  bt.phase="fight";
+  bt.boss=boss;
+  bt.bossHP=boss.hp;
+  bt.mascotHP=bt.selectedMascots.map(i=>MASCOTS[i].hp);
+  bt.activeMascot=0;
+  bt.log=[`⚔️ Bataille contre ${boss.emoji} ${boss.name} commence !`];
+  genBattleProblem();
+  renderBattle();
+}
+
+function genBattleProblem(){
+  const boss=state.battle.boss;
+  const bt=state.battle;
+  let op, nums;
+  if(boss.id===1){
+    // Facile : addition 2 nombres simples
+    op="+";
+    let a,b;
+    do{a=rnd(100,499);b=rnd(100,499);}while(a+b>999);
+    nums=[a,b];
+  }else if(boss.id===2){
+    // Moyen : soustraction ou addition 2 nombres
+    op=rnd(0,1)?"-":"+";
+    if(op==="+"){let a,b;do{a=rnd(500,4999);b=rnd(100,2000);}while(a+b>9999);nums=[a,b];}
+    else{const a=rnd(1000,9999);const b=rnd(50,Math.min(a-1,5000));nums=[a,b];}
+  }else{
+    // Difficile : addition 3 nombres ou soustraction
+    op=rnd(0,1)?"+":"-";
+    if(op==="+"){let a,b,c;do{a=rnd(100,999);b=rnd(100,999);c=rnd(100,999);}while(a+b+c>9999);nums=[a,b,c];}
+    else{const a=rnd(1000,9999);const b=rnd(50,Math.min(a-1,5000));nums=[a,b];}
+  }
+  const info=computeInfo(op,nums);
+  bt.bNums=nums;bt.bOp=op;bt.bRd=info.rd;bt.bRetenues=info.ret;bt.bResult=info.result;
+  bt.bAns=Array(C).fill("");bt.bRet=Array(C).fill("");bt.bDone=false;
+  document.getElementById("bf-feedback").style.display="none";
+  document.getElementById("bf-attack-btn").style.display="inline-flex";
+  renderBattleGrid();
+}
+
+function renderBattleGrid(){
+  const bt=state.battle;
+  const {bOp:op,bNums:nums,bDone:done,bAns:ans,bRet:retState,bRd:rd,bRetenues:retenues}=bt;
+  const wrap=document.getElementById("bf-grid-wrap");
+  if(!wrap)return;
+  let html=`<div style="display:inline-grid;grid-template-columns:44px repeat(${C},62px);row-gap:4px;column-gap:3px">`;
+  html+=`<div></div>`;
+  LABELS.forEach(l=>{html+=`<div class="col-header">${l}</div>`;});
+  nums.forEach((n,ri)=>{
+    const ds=digs(n);
+    const sign=ri===0?"":op==="+"?"+":"−";
+    html+=`<div class="sign-cell" style="visibility:${ri===0?"hidden":"visible"}">${sign}</div>`;
+    ds.forEach((d,ci)=>{
+      if(d===null){html+=`<div style="width:62px;height:62px"></div>`;}
+      else{html+=`<div class="num-cell">${d}</div>`;}
+    });
+  });
+  html+=`<div style="grid-column:1/-1" class="sep"></div>`;
+  if(op==="+"){
+    html+=`<div class="ret-label">ret.</div>`;
+    for(let c=0;c<C;c++){
+      const hasRet=retenues[c]>0;
+      html+=`<div class="ret-cell">`;
+      if(hasRet){html+=`<input type="number" class="ret-input" value="${done?retenues[c]:retState[c]}" ${done?"disabled":""} oninput="bRetChange(this,${c})" onkeydown="if(event.key==='Enter')checkBattle()"/>`;}
+      else{html+=`<div></div>`;}
+      html+=`</div>`;
+    }
+  }
+  html+=`<div class="ans-cell-wrap"></div>`;
+  for(let c=0;c<C;c++){
+    const correct=rd[c];
+    if(correct===null&&!done){html+=`<div style="width:62px;height:62px"></div>`;continue;}
+    if(correct===null&&done){html+=`<div class="num-cell" style="color:#2e7d32">0</div>`;continue;}
+    html+=`<div><input type="number" class="ans-input ${done?(ans[c]==rd[c]?"ok":"err"):""}" data-bc="${c}" value="${ans[c]}" ${done?"disabled":""} min="0" max="9" oninput="bAnsChange(this,${c})" onkeydown="bAnsKey(event,${c})"/></div>`;
+  }
+  html+=`</div>`;
+  wrap.innerHTML=html;
+  if(!done){const f=wrap.querySelector(".ans-input");if(f)setTimeout(()=>f.focus(),60);}
+}
+
+function bAnsChange(el,c){
+  const v=el.value.replace(/[^0-9]/g,"");el.value=v;
+  state.battle.bAns[c]=v===""?"":parseInt(v);
+  if(v.length>=1){const next=document.querySelector(`[data-bc="${c+1}"]`);if(next)next.focus();}
+}
+function bAnsKey(e,c){
+  if(e.key==="Enter")checkBattle();
+  if(e.key==="ArrowRight"){const n=document.querySelector(`[data-bc="${c+1}"]`);if(n)n.focus();}
+  if(e.key==="ArrowLeft"&&c>0){const n=document.querySelector(`[data-bc="${c-1}"]`);if(n)n.focus();}
+}
+function bRetChange(el,c){state.battle.bRet[c]=el.value===""?"":parseInt(el.value);}
+
+function renderFightUI(){
+  const bt=state.battle;
+  const boss=bt.boss;
+  document.getElementById("bf-boss-emoji").textContent=boss.emoji;
+  document.getElementById("bf-boss-name").textContent=boss.name;
+  updateBossHP();
+  updateTeamDisplay();
+  // Log
+  const log=document.getElementById("bf-log");
+  log.innerHTML=bt.log.slice(-8).map(l=>`<div style="color:#4a148c;font-weight:600">${l}</div>`).join("");
+  log.scrollTop=log.scrollHeight;
+  // Battle grid
+  if(bt.bNums.length>0)renderBattleGrid();
+  // Potion button
+  const potBtn=document.getElementById("bf-potion-btn");
+  const hasPot=state.potion_s>0||state.potion_g>0;
+  potBtn.style.display=hasPot?"inline-flex":"none";
+}
+
+function updateBossHP(){
+  const bt=state.battle;
+  const boss=bt.boss;
+  const pct=Math.max(0,(bt.bossHP/boss.hp)*100);
+  document.getElementById("bf-boss-hp-fill").style.width=pct+"%";
+  document.getElementById("bf-boss-hp-label").textContent=`${bt.bossHP} / ${boss.hp} HP`;
+}
+
+function updateTeamDisplay(){
+  const bt=state.battle;
+  const wrap=document.getElementById("bf-team-display");
+  wrap.innerHTML=bt.selectedMascots.map((mi,teamIdx)=>{
+    const m=MASCOTS[mi];
+    const hp=bt.mascotHP[teamIdx];
+    const maxHp=m.hp;
+    const pct=Math.max(0,(hp/maxHp)*100);
+    const active=teamIdx===bt.activeMascot;
+    const dead=hp<=0;
+    return `<div style="flex:1;min-width:70px;text-align:center;background:${active?"rgba(255,214,0,.2)":dead?"rgba(200,200,200,.3)":"rgba(255,255,255,.5)"};border-radius:14px;padding:8px 6px;border:2px solid ${active?"#ffd600":dead?"#bbb":"rgba(255,255,255,.7)"}${dead?";filter:grayscale(1);opacity:.5":""}">
+      <div style="font-size:28px">${dead?"💀":m.emoji}</div>
+      <div style="font-size:10px;font-weight:800;color:#4a148c;margin:2px 0">${m.name.split(" ")[0]}</div>
+      <div class="battle-hp-wrap" style="margin-top:4px"><div class="battle-hp-fill${pct<=25?" low":pct<=50?" mid":""}" style="width:${pct}%"></div></div>
+      <div style="font-size:10px;font-weight:700;color:#ab47bc;margin-top:2px">${hp}/${maxHp}</div>
+    </div>`;
+  }).join("");
+}
+
+function checkBattle(){
+  const bt=state.battle;
+  if(bt.bDone)return;
+  const allFilled=bt.bRd.every((v,i)=>v===null||bt.bAns[i]!=="");
+  if(!allFilled){showToast("Remplis toutes les cases !");return;}
+  let correct=true;
+  for(let i=0;i<C;i++){
+    if(bt.bRd[i]!==null&&parseInt(bt.bAns[i])!==bt.bRd[i]){correct=false;break;}
+  }
+  bt.bDone=true;
+  renderBattleGrid();
+  const fbEl=document.getElementById("bf-feedback");
+  fbEl.style.display="block";
+  document.getElementById("bf-attack-btn").style.display="none";
+
+  if(correct){
+    const m=MASCOTS[bt.selectedMascots[bt.activeMascot]];
+    const dmg=m.atk+rnd(-2,3);
+    bt.bossHP=Math.max(0,bt.bossHP-dmg);
+    bt.log.push(`✅ ${m.emoji} attaque ! ${bt.boss.emoji} perd ${dmg} HP !`);
+    fbEl.style.cssText="display:block;background:rgba(200,255,210,.7);border-radius:12px;padding:10px;border:2px solid #66bb6a;color:#2e7d32";
+    fbEl.textContent=`⚔️ Attaque réussie ! −${dmg} HP au boss !`;
+    updateBossHP();
+    updateTeamDisplay();
+    updateBattleLog();
+    if(bt.bossHP<=0){setTimeout(()=>endBattle(true),1200);return;}
+  }else{
+    const dmg=Math.floor(bt.boss.atk*0.6)+rnd(0,3);
+    bt.mascotHP[bt.activeMascot]=Math.max(0,bt.mascotHP[bt.activeMascot]-dmg);
+    const m=MASCOTS[bt.selectedMascots[bt.activeMascot]];
+    bt.log.push(`❌ Raté ! ${bt.boss.emoji} contre-attaque ! ${m.emoji} perd ${dmg} HP !`);
+    fbEl.style.cssText="display:block;background:rgba(255,200,200,.7);border-radius:12px;padding:10px;border:2px solid #f44336;color:#c62828";
+    fbEl.textContent=`💥 Raté ! ${m.emoji} perd ${dmg} HP !`;
+    updateTeamDisplay();
+    updateBattleLog();
+    if(bt.mascotHP[bt.activeMascot]<=0){
+      const next=bt.selectedMascots.findIndex((_,i)=>i>bt.activeMascot&&bt.mascotHP[i]>0);
+      if(next>=0){bt.activeMascot=next;bt.log.push(`🔄 ${MASCOTS[bt.selectedMascots[next]].emoji} entre en jeu !`);}
+      else{setTimeout(()=>endBattle(false),1200);return;}
+    }
+  }
+  setTimeout(genBattleProblem, correct ? 1400 : 1800);
+}
+
+function updateBattleLog(){
+  const log=document.getElementById("bf-log");
+  const bt=state.battle;
+  log.innerHTML=bt.log.slice(-8).map(l=>`<div style="color:#4a148c;font-weight:600">${l}</div>`).join("");
+  log.scrollTop=log.scrollHeight;
+}
+
+function usePotion(){
+  const hasBig=state.potion_g>0;
+  const hasSmall=state.potion_s>0;
+  if(!hasBig&&!hasSmall){showToast("Plus de potions !");return;}
+  const heal=hasBig?40:15;
+  if(hasBig)state.potion_g--;else state.potion_s--;
+  const bt=state.battle;
+  const m=MASCOTS[bt.selectedMascots[bt.activeMascot]];
+  const maxHP=m.hp;
+  bt.mascotHP[bt.activeMascot]=Math.min(maxHP,bt.mascotHP[bt.activeMascot]+heal);
+  bt.log.push(`🧪 Potion ! ${m.emoji} récupère ${heal} HP !`);
+  updateTeamDisplay();updateBattleLog();saveState();
+  showToast(`${hasBig?"💊":"🧪"} +${heal} HP !`);
+}
+
+function endBattle(won){
+  const bt=state.battle;
+  const modal=document.getElementById("battle-result-modal");
+  const box=document.getElementById("battle-result-box");
+  if(won){
+    box.style.background="linear-gradient(135deg,#fff8e1,#fffde7,#f9fbe7)";
+    document.getElementById("br-emoji").textContent="🏆";
+    document.getElementById("br-title").style.color="#e65100";
+    document.getElementById("br-title").textContent="Victoire !";
+    document.getElementById("br-msg").textContent=`Tu as vaincu ${bt.boss.emoji} ${bt.boss.name} !`;
+    const rw=bt.boss.reward;
+    state.gems+=rw.gems;
+    awardXP(rw.xp);
+    const rd=document.getElementById("br-rewards");
+    rd.style.display="block";
+    rd.innerHTML=`<div style="font-weight:900;color:#e65100;font-size:15px">🎁 Récompenses !</div>
+      <div style="margin-top:8px;font-size:16px;font-weight:700;color:#4a148c">+${rw.gems} 💎 gemmes · +${rw.xp} XP</div>`;
+    showConfetti();
+  }else{
+    box.style.background="linear-gradient(135deg,#fce4ec,#f8bbd9)";
+    document.getElementById("br-emoji").textContent="💔";
+    document.getElementById("br-title").style.color="#c2185b";
+    document.getElementById("br-title").textContent="Défaite...";
+    document.getElementById("br-msg").textContent=`${bt.boss.emoji} ${bt.boss.name} était trop fort ! Entraîne-toi et reviens !`;
+    document.getElementById("br-rewards").style.display="none";
+  }
+  modal.classList.add("show");
+}
+
+function closeBattleResult(){
+  document.getElementById("battle-result-modal").classList.remove("show");
+  // Reset battle
+  state.battle={phase:"idle",selectedMascots:[],boss:null,mascotHP:[],bossHP:0,activeMascot:0,question:"",answer:0,log:[],bNums:[],bOp:"+",bAns:Array(C).fill(""),bRet:Array(C).fill(""),bRd:[],bRetenues:[],bResult:0,bDone:false};
+  document.getElementById("battle-idle-panel").style.display="block";
+  document.getElementById("battle-fight-panel").style.display="none";
+  renderBattle();
+}
+
+function confirmFleeBattle(){
+  if(confirm("Fuir le combat ? Pas de récompense...")){
+    closeBattleResult();
+    // Without showing modal
+    state.battle={phase:"idle",selectedMascots:[],boss:null,mascotHP:[],bossHP:0,activeMascot:0,question:"",answer:0,log:[],bNums:[],bOp:"+",bAns:Array(C).fill(""),bRet:Array(C).fill(""),bRd:[],bRetenues:[],bResult:0,bDone:false};
+    document.getElementById("battle-idle-panel").style.display="block";
+    document.getElementById("battle-fight-panel").style.display="none";
+    renderBattle();
+  }
+}
+
+/* ══════════════════════════════════════════
+   LESSON
+══════════════════════════════════════════ */
+function renderLessonCasePills(){
+  const wrap=document.getElementById("lesson-case-pills");
+  wrap.innerHTML="";
+  LESSONS.forEach((l,i)=>{
+    const btn=document.createElement("button");
+    const active=i===state.lessonCase;
+    btn.className=`pill ${active?"pill-active-purple":"pill-inactive"}`;
+    btn.style.cssText="font-size:12px;padding:7px 14px;white-space:nowrap";
+    btn.textContent=`${l.badge} Cas ${i+1}`;
+    btn.onclick=()=>{state.lessonCase=i;state.lessonStep=0;renderLesson();};
+    wrap.appendChild(btn);
+  });
+}
+
+function renderLesson(){
+  renderLessonCasePills();
+  const cas=LESSONS[state.lessonCase];
+  const s=cas.steps[state.lessonStep];
+
+  // Case badge
+  const badge=document.getElementById("lesson-case-badge");
+  badge.textContent=`${cas.badge} Cas ${state.lessonCase+1} : ${cas.label}`;
+  badge.style.background=cas.bgColor;badge.style.color=cas.color;badge.style.border=`2px solid ${cas.color}44`;
+
+  document.getElementById("lesson-example").textContent=cas.example;
+  document.getElementById("lesson-title").textContent=s.title;
+  document.getElementById("lesson-text").textContent=s.text;
+
+  // Dots
+  const dots=document.getElementById("lesson-dots");
+  dots.innerHTML="";
+  cas.steps.forEach((_,i)=>{
+    const d=document.createElement("div");
+    d.style.cssText=`width:${i===state.lessonStep?20:10}px;height:10px;border-radius:99px;background:${i===state.lessonStep?cas.color:i<state.lessonStep?"#66bb6a":"rgba(0,0,0,.15)"};transition:all .3s`;
+    dots.appendChild(d);
+  });
+
+  // Grid
+  renderLessonGrid(cas,s);
+
+  // Buttons
+  const prev=document.getElementById("btn-prev");
+  const next=document.getElementById("btn-next");
+  const isFirst=state.lessonStep===0;
+  const isLast=state.lessonStep===cas.steps.length-1;
+  prev.style.opacity=isFirst?".3":"1";prev.disabled=isFirst;
+  if(isLast){next.textContent=state.lessonCase<LESSONS.length-1?"Cas suivant →":"Aller s'entraîner 🎮";}
+  else{next.textContent="Suivant →";}
+}
+
+function renderLessonGrid(cas,s){
+  const keys=["C","D","U"];
+  const top=cas.top;const bot=cas.bot;
+  const {focus,struck={},newDig={},res={}}=s;
+  const wrap=document.getElementById("lesson-grid-wrap");
+  let html="";
+
+  // Headers
+  html+=`<div></div>`;
+  keys.forEach(k=>{
+    const col=k===focus?"#e91e8c":"#ab47bc";
+    html+=`<div style="height:24px;display:flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:${col};letter-spacing:1px">${k}</div>`;
+  });
+
+  // Top row
+  html+=`<div></div>`;
+  keys.forEach((k,i)=>{
+    const isFocus=k===focus;
+    const isStruck=k in struck;
+    const bc=isFocus?"#e91e8c":"#e1bee7";
+    const bg=isFocus?"rgba(233,30,140,.08)":"rgba(255,255,255,.5)";
+    html+=`<div style="width:64px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid ${bc};background:${bg};transition:all .3s">`;
+    if(isStruck){
+      html+=`<span style="display:flex;flex-direction:column;align-items:center;line-height:1">
+        <span style="font-size:13px;font-family:'Caveat',cursive;font-weight:700;color:#e91e8c">${newDig[k]}</span>
+        <span style="font-size:28px;font-family:'Caveat',cursive;font-weight:700;color:#c62828;text-decoration:line-through">${top[i]}</span>
+      </span>`;
+    }else{
+      html+=`<span style="font-size:32px;font-family:'Caveat',cursive;font-weight:700;color:#4a148c">${top[i]}</span>`;
+    }
+    html+=`</div>`;
+  });
+
+  // Bottom row
+  html+=`<div style="width:40px;height:58px;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;font-family:'Caveat',cursive;font-size:32px;font-weight:700;color:#e91e8c">−</div>`;
+  keys.forEach((k,i)=>{
+    const isFocus=k===focus;
+    const bc=isFocus?"#e91e8c":"#e1bee7";
+    const bg=isFocus?"rgba(233,30,140,.08)":"rgba(255,255,255,.5)";
+    html+=`<div style="width:64px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid ${bc};background:${bg}"><span style="font-size:32px;font-family:'Caveat',cursive;font-weight:700;color:#4a148c">${bot[i]}</span></div>`;
+  });
+
+  // Separator
+  html+=`<div style="grid-column:1/-1;height:3px;background:linear-gradient(90deg,#e91e8c,#ab47bc);border-radius:2px;margin:4px 0"></div>`;
+
+  // Result row
+  html+=`<div></div>`;
+  keys.forEach(k=>{
+    const r=res[k];
+    const bc=r!==undefined?"#66bb6a":"#ddd";
+    const bg=r!==undefined?"rgba(200,255,210,.5)":"rgba(245,245,245,.4)";
+    html+=`<div style="width:64px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid ${bc};background:${bg};transition:all .4s">`;
+    if(r!==undefined){html+=`<span style="font-size:32px;font-family:'Caveat',cursive;font-weight:700;color:#2e7d32">${r}</span>`;}
+    else{html+=`<span style="font-size:26px;color:#ddd">?</span>`;}
+    html+=`</div>`;
+  });
+
+  wrap.innerHTML=html;
+}
+
+function lessonPrev(){state.lessonStep=Math.max(0,state.lessonStep-1);renderLesson();}
+function lessonNext(){
+  const cas=LESSONS[state.lessonCase];
+  if(state.lessonStep===cas.steps.length-1){
+    if(state.lessonCase<LESSONS.length-1){state.lessonCase++;state.lessonStep=0;renderLesson();}
+    else{state.lessonStep=0;showTab("play");switchOp("-");}
+  }else{
+    state.lessonStep++;renderLesson();
+  }
+}
+
+/* ══════════════════════════════════════════
+   COLLECTION
+══════════════════════════════════════════ */
+function renderCollection(){
+  const m=getMascot(state.level);
+  document.getElementById("coll-mascot").textContent=m.emoji;
+  document.getElementById("coll-mascot-name").textContent=m.name;
+
+  const journey=document.getElementById("mascot-journey");
+  journey.innerHTML="";
+  // Title card for current form
+  const activeMascotCard=document.createElement("div");
+  activeMascotCard.style.cssText=`width:100%;border-radius:20px;padding:16px;text-align:center;background:${m.typeBg};
+    border:3px solid ${m.typeColor};box-shadow:0 6px 24px ${m.typeColor}44;margin-bottom:14px`;
+  activeMascotCard.innerHTML=`
+    <div style="font-size:14px;font-weight:800;color:${m.typeColor};letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Ton compagnon actuel</div>
+    <div style="font-size:72px;margin:6px 0;animation:pulse 2.5s ease infinite">${m.emoji}</div>
+    <div style="background:${m.typeColor};color:#fff;border-radius:99px;padding:3px 14px;font-size:12px;font-weight:900;display:inline-block;margin-bottom:6px">${m.typeEmoji} ${m.type}</div>
+    <div style="font-weight:900;font-size:20px;color:#4a148c;margin-bottom:4px">${m.name}</div>
+    <div style="font-size:12px;color:#7b1fa2;font-weight:600;margin-bottom:10px;line-height:1.4">${m.desc}</div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <div style="background:rgba(255,255,255,.6);border-radius:12px;padding:6px 14px">
+        <div style="font-size:10px;font-weight:800;color:#888">HP</div>
+        <div style="font-weight:900;color:#c62828;font-size:16px">❤️ ${m.hp}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.6);border-radius:12px;padding:6px 14px">
+        <div style="font-size:10px;font-weight:800;color:#888">ATK</div>
+        <div style="font-weight:900;color:#e65100;font-size:16px">⚔️ ${m.atk}</div>
+      </div>
+    </div>
+  `;
+  journey.appendChild(activeMascotCard);
+
+  // Evolution chain
+  const chainTitle=document.createElement("p");
+  chainTitle.style.cssText="font-weight:800;color:#7b1fa2;font-size:13px;margin-bottom:10px;text-align:center";
+  chainTitle.textContent="🔮 Chaîne d'évolution";
+  journey.appendChild(chainTitle);
+
+  const chain=document.createElement("div");
+  chain.style.cssText="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px";
+  MASCOTS.forEach((ms,i)=>{
+    const unlocked=state.level>=ms.min;
+    const isCurrent=state.level>=ms.min&&state.level<=ms.max;
+    const card=document.createElement("div");
+    card.style.cssText=`min-width:90px;border-radius:16px;padding:10px 8px;text-align:center;
+      background:${unlocked?ms.typeBg:"rgba(240,240,240,.5)"};
+      border:2.5px solid ${isCurrent?ms.typeColor:unlocked?"rgba(255,255,255,.8)":"#ddd"};
+      opacity:${unlocked?"1":".4"};box-shadow:${isCurrent?`0 4px 16px ${ms.typeColor}44`:"none"};
+      filter:${unlocked?"none":"grayscale(1)"}`;
+    card.innerHTML=`
+      <div style="font-size:30px">${unlocked?ms.emoji:"🔒"}</div>
+      <div style="font-size:9px;font-weight:900;background:${ms.typeColor};color:#fff;border-radius:99px;padding:1px 6px;margin:3px auto;display:inline-block">${ms.type}</div>
+      <div style="font-size:10px;font-weight:900;color:${unlocked?"#4a148c":"#bbb"}">${ms.name}</div>
+      <div style="font-size:9px;font-weight:700;color:${unlocked?ms.typeColor:"#ccc"}">Niv.${ms.min}+</div>
+      ${isCurrent?`<div style="font-size:10px;font-weight:900;color:${ms.typeColor};margin-top:2px">← Toi !</div>`:""}
+      ${!unlocked?`<div style="font-size:9px;color:#999">🔒</div>`:""}
+    `;
+    chain.appendChild(card);
+    // Arrow between cards
+    if(i<MASCOTS.length-1){
+      const arr=document.createElement("div");
+      arr.style.cssText="display:flex;align-items:center;font-size:16px;color:#ab47bc;flex-shrink:0";
+      arr.textContent="→";
+      chain.appendChild(arr);
+    }
+  });
+  journey.appendChild(chain);
+
+  const sg=document.getElementById("stats-grid");
+  const stats=[
+    {label:"Niveau",val:state.level,icon:"🎮",color:"#7b1fa2"},
+    {label:"Gemmes",val:state.gems,icon:"💎",color:"#1565c0"},
+    {label:"Streak actuel",val:`${state.streak} 🔥`,icon:"⚡",color:"#e65100"},
+    {label:"Bonnes réponses",val:state.totalCorrect,icon:"✅",color:"#2e7d32"},
+  ];
+  sg.innerHTML=stats.map(s=>`
+    <div style="background:rgba(255,255,255,.5);border-radius:14px;padding:12px 14px;border:1.5px solid ${s.color}22">
+      <div style="font-size:22px;margin-bottom:2px">${s.icon}</div>
+      <div style="font-weight:900;font-size:22px;color:${s.color}">${s.val}</div>
+      <div style="font-weight:700;font-size:12px;color:#888">${s.label}</div>
+    </div>
+  `).join("");
+
+  const bl=document.getElementById("badges-list");
+  bl.innerHTML=BADGES.map(b=>{
+    const unlocked=state.unlockedBadges.includes(b.id);
+    return `<div class="badge-row ${unlocked?"":"locked"}">
+      <div style="font-size:42px;flex-shrink:0">${unlocked?b.emoji:"🔒"}</div>
+      <div style="flex:1">
+        <div style="font-weight:900;color:${unlocked?"#4a148c":"#999"};font-size:16px">${b.name}</div>
+        <div style="font-weight:600;color:${unlocked?"#8e24aa":"#bbb"};font-size:13px">${unlocked?b.desc:`Débloque au niveau ${b.level}`}</div>
+      </div>
+      ${unlocked?`<div style="font-size:20px">✨</div>`:""}
+    </div>`;
+  }).join("");
+
+  const next=BADGES.find(b=>!state.unlockedBadges.includes(b.id));
+  const nbc=document.getElementById("next-badge-card");
+  if(next){
+    nbc.style.display="block";
+    document.getElementById("next-badge-label").textContent=`🎁 Prochain badge au niveau ${next.level}`;
+    const remaining=Math.max(0,(next.level-state.level)*XP_PER_LEVEL-state.xp);
+    document.getElementById("next-badge-count").textContent=`Plus que ${remaining} bonnes réponses !`;
+  }else nbc.style.display="none";
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+function init(){
+  loadState();
+  applyTheme();
+  initParticles();
+
+  // Restore tab buttons state
+  document.querySelectorAll(".tab-nav button").forEach(b=>b.className="pill pill-inactive");
+  document.getElementById("btn-tab-play").className="pill pill-active-pink";
+
+  state.nums=genProb("+");
+  const info=computeInfo("+",state.nums);
+  state.rd=info.rd;state.retenues=info.ret;state.result=info.result;
+  document.getElementById("tip-text").textContent="Va de droite à gauche (U → D → C → M). Parfois 2 nombres, parfois 3 — les retenues peuvent valoir 2 !";
+  renderGrid();
+  updateHUD();
+  renderLesson();
+}
+
+window.onload=init;
+</script>
+</body>
+</html>
